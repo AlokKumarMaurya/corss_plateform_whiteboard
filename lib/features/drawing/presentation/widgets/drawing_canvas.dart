@@ -49,8 +49,8 @@ class DrawingCanvas extends StatelessWidget {
                         strokes: controller.strokes,
                         activeStrokes: <DrawingStroke>[
                           ...controller.remoteActiveStrokes,
-                          if (controller.activeStroke.value case final DrawingStroke stroke)
-                            stroke,
+                          if (controller.activeStroke.value != null)
+                            controller.activeStroke.value!,
                         ],
                       ),
                       size: size,
