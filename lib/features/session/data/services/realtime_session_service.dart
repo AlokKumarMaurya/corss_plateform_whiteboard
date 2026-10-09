@@ -3,11 +3,11 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:cross_platform_whiteboard/features/session/data/services/session_host_factory.dart';
+import 'package:cross_platform_whiteboard/features/session/domain/models/session_event_type.dart';
 import 'package:cross_platform_whiteboard/features/session/domain/models/session_message.dart';
 import 'package:cross_platform_whiteboard/features/session/domain/models/session_status.dart';
 import 'package:cross_platform_whiteboard/features/session/domain/repositories/drawing_sync_gateway.dart';
 import 'package:cross_platform_whiteboard/features/session/domain/repositories/session_host.dart';
-import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -96,7 +96,7 @@ class RealtimeSessionService extends GetxService implements DrawingSyncGateway {
       publish(
         SessionMessage(
           senderId: clientId,
-          type: 'request_snapshot',
+          type: SessionEventType.requestSnapshot,
           payload: const <String, dynamic>{},
         ),
       );
@@ -155,7 +155,8 @@ class RealtimeSessionService extends GetxService implements DrawingSyncGateway {
       return error.message?.toString() ??
           'Session hosting is not supported on this platform.';
     }
-    if (error is SocketException) {
+    final String message = error.toString();
+    if (message.contains('Connection refused') || message.contains('Failed host lookup')) {
       return 'Could not reach the host. Check the IP address, Wi-Fi, and Windows Firewall.';
     }
     return error.toString().replaceFirst('Exception: ', '');
