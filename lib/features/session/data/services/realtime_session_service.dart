@@ -65,13 +65,20 @@ class RealtimeSessionService extends GetxService implements DrawingSyncGateway {
     int port = defaultPort,
   }) async {
     await disconnect();
-    status.value = SessionStatus.connecting;
     errorMessage.value = '';
+    final String normalizedHost = host.trim();
+    if (!_isPrivateIpv4(normalizedHost)) {
+      errorMessage.value =
+          'Enter the private IPv4 address shown by the Windows companion.';
+      status.value = SessionStatus.disconnected;
+      return;
+    }
+    status.value = SessionStatus.connecting;
 
     try {
       final Uri uri = Uri(
         scheme: 'ws',
-        host: host.trim(),
+        host: normalizedHost,
         port: port,
         path: '/input-pad',
         queryParameters: <String, String>{'token': token.trim()},
@@ -141,6 +148,19 @@ class RealtimeSessionService extends GetxService implements DrawingSyncGateway {
     hostAddresses.clear();
     sessionToken.value = '';
     status.value = SessionStatus.disconnected;
+  }
+
+  bool _isPrivateIpv4(String address) {
+    final List<int> octets = address.split('.').map(int.tryParse).toList();
+    if (octets.length != 4 ||
+        octets.any((int? octet) => octet == null || octet < 0 || octet > 255)) {
+      return false;
+    }
+    final int first = octets[0]!;
+    final int second = octets[1]!;
+    return first == 10 ||
+        (first == 172 && second >= 16 && second <= 31) ||
+        (first == 192 && second == 168);
   }
 
   String _friendlyError(Object error) {
