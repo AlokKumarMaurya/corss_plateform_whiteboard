@@ -20,6 +20,10 @@ class InputPadController extends GetxController {
   final Map<int, Offset> _contacts = <int, Offset>{};
   Size _padSize = Size.zero;
   final RxBool _tabletMode = false.obs;
+  final RxDouble _tabletZoom = 1.0.obs;
+  final RxDouble _tabletAreaX = 0.5.obs;
+  final RxDouble _tabletAreaY = 0.5.obs;
+  static const double _edgeSnapFraction = 0.04;
   final RxBool _isNavigating = false.obs;
   final RxBool _writeMode = true.obs;
   final RxDouble _pointerSensitivity = 1.0.obs;
@@ -37,6 +41,9 @@ class InputPadController extends GetxController {
   bool get isNavigating => _isNavigating.value;
   bool get writeMode => _writeMode.value;
   bool get tabletMode => _tabletMode.value;
+  double get tabletZoom => _tabletZoom.value;
+  double get tabletAreaX => _tabletAreaX.value;
+  double get tabletAreaY => _tabletAreaY.value;
   double get pointerSensitivity => _pointerSensitivity.value;
   double get scrollSensitivity => _scrollSensitivity.value;
   String get hint => _hint.value;
@@ -62,6 +69,18 @@ class InputPadController extends GetxController {
 
   void setTabletMode(bool value) {
     _tabletMode.value = value;
+  }
+
+  void setTabletZoom(double value) {
+    _tabletZoom.value = value.clamp(1.0, 4.0).toDouble();
+  }
+
+  void setTabletAreaX(double value) {
+    _tabletAreaX.value = value.clamp(0.0, 1.0).toDouble();
+  }
+
+  void setTabletAreaY(double value) {
+    _tabletAreaY.value = value.clamp(0.0, 1.0).toDouble();
   }
 
   void setPointerSensitivity(double value) {
@@ -292,12 +311,39 @@ class InputPadController extends GetxController {
 
   void _sendAbsolutePosition(Offset position) {
     if (_padSize.width <= 0 || _padSize.height <= 0) return;
-    final double x = (position.dx / _padSize.width).clamp(0.0, 1.0).toDouble();
-    final double y = (position.dy / _padSize.height).clamp(0.0, 1.0).toDouble();
+
+    // Shrink the active touch range slightly so users do not have to touch
+    // the physical edge of the phone to reach the desktop's edges/corners.
+    final double touchX = _normalizeTouchCoordinate(
+      position.dx,
+      _padSize.width,
+    );
+    final double touchY = _normalizeTouchCoordinate(
+      position.dy,
+      _padSize.height,
+    );
+    final double zoom = _tabletZoom.value;
+    final double visibleFraction = 1.0 / zoom;
+    final double originX = _tabletAreaX.value * (1.0 - visibleFraction);
+    final double originY = _tabletAreaY.value * (1.0 - visibleFraction);
+    final double x = (originX + touchX * visibleFraction)
+        .clamp(0.0, 1.0)
+        .toDouble();
+    final double y = (originY + touchY * visibleFraction)
+        .clamp(0.0, 1.0)
+        .toDouble();
+
     _send(SessionEventType.pointerMoveAbsolute, <String, dynamic>{
       'x': x,
       'y': y,
     });
+  }
+
+  double _normalizeTouchCoordinate(double coordinate, double extent) {
+    final double fraction = (coordinate / extent).clamp(0.0, 1.0).toDouble();
+    return ((fraction - _edgeSnapFraction) / (1.0 - 2 * _edgeSnapFraction))
+        .clamp(0.0, 1.0)
+        .toDouble();
   }
 
   void _pressLeftButton() {
