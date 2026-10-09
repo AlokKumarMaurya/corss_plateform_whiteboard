@@ -1,28 +1,34 @@
 # Implementation Status
 
-## Foundation committed on `feature/whiteboard-foundation`
+## Merged foundation
 
-- Flutter package manifest and lints.
-- GetX app bootstrap, route table, and dependency binding.
-- Shared drawing point and stroke models.
-- In-memory drawing repository contract and implementation.
-- Local canvas using Flutter pointer events and `CustomPainter`.
-- Pen color, pen width, eraser, clear, undo, and redo controls.
-- Centralized `AppStrings` and reusable toolbar/canvas widgets.
-- Unit tests for normalized points and whiteboard controller operations.
-- GitHub Actions workflow for dependency resolution, static analysis, and unit tests.
+The local drawing foundation is in main: GetX routes and bindings, reusable canvas/tool widgets, centralized strings, normalized drawing models, undo/redo/clear, and unit tests.
 
-## Not validated yet
+## Current branch: feature/windows-web-live-session
 
-GitHub Actions successfully ran `flutter pub get`, `flutter analyze`, and `flutter test` on commit `4253d03663453fb5d4514ea1ff4a22b7fb083a82` (run: https://github.com/AlokKumarMaurya/corss_plateform_whiteboard/actions/runs/37955770348). No Windows desktop or physical Android device build has been performed yet.
+- Versioned JSON session protocol with message validation.
+- Drawing point/stroke serialization using normalized coordinates and ARGB integer colors.
+- Windows-only WebSocket host behind a conditional import.
+- WebSocket client built with web_socket_channel, shared by Flutter web and Windows.
+- Random session access code, maximum client count, and message size limits.
+- Windows host UI shows LAN IPv4 addresses and session code.
+- Web UI connects to the Windows host using IP + session code.
+- Local and remote strokes, undo/redo/clear, and initial board snapshots are synchronized.
+- Added protocol/controller tests and CI web build check.
 
-The actual WebSocket host/client, QR pairing, network permissions, PNG export, local persistence, and browser companion flow remain future implementation work.
+## Validation status
 
-## Follow-up items
+Check the GitHub Actions runs at https://github.com/AlokKumarMaurya/corss_plateform_whiteboard/actions for the latest result on this branch. This branch is not considered ready to merge until dependency resolution, flutter analyze, flutter build web, and flutter test pass.
 
-- The requested `clean_util` package name does not resolve on pub.dev, verified by CI. Confirm the exact package URL if you intended a different package.
-- `DrawingPoint` and `DrawingStroke` use platform-neutral numeric fields suitable for future JSON serialization.
-- Improve live stroke rendering efficiency: avoid copying every point list on every pointer event for long strokes; keep a mutable transient point buffer and publish frame updates.
-- Validate eraser compositing on web and Windows and add a regression test for transparent erasing.
-- Stylus pressure is normalized using device-reported bounds; validate input on a physical Android stylus device.
-- Add UI widget tests and Windows/Android real-device testing.
+No actual Windows desktop session or cross-device LAN test has been performed by the CI runner. The manual test steps are in the README.
+
+## Known limitations / next work
+
+- Add a Windows build job and verify a real Windows session manually.
+- Add the Android client using the same session protocol, then QR pairing and reconnect handling.
+- Improve point batching/rendering performance for long handwritten strokes.
+- Consider snapshot chunking or compression for very large boards.
+- Add rate limiting, better malformed-event telemetry, and session expiry.
+- Validate eraser compositing on Windows and web.
+- Add persistent boards and PNG export after live synchronization is proven.
+- The requested clean_util package name did not resolve on pub.dev, so it remains excluded pending an exact package URL.
