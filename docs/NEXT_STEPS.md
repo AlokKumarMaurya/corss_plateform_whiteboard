@@ -1,31 +1,32 @@
-# Next vertical slice: phone-to-laptop drawing
+# Next steps: live whiteboard across devices
 
-The current CI-verified slice is the local canvas and drawing model. The next slice must prove live Android-to-Windows drawing before adding richer whiteboard features.
+## Current branch slice
 
-## Implementation order
+feature/windows-web-live-session adds the protocol, Windows LAN host, and web client. The Windows app starts the session; browser JavaScript cannot listen on a local socket, so the browser connects as a client.
 
-1. Add a versioned, JSON-serializable drawing-event protocol. Use normalized x/y values and integer ARGB colors. Do not transmit Flutter object instances.
-2. Add a platform-specific transport abstraction in the domain/application layer and keep socket imports out of drawing models.
-3. Implement a native Windows host using `dart:io` WebSocket support, binding only to the active local network interface where feasible and documenting Windows Firewall behavior.
-4. Implement the Android client using a WebSocket package and a simple manual IPv4/port entry screen for the first test. Add Android INTERNET permission and clear errors for unreachable hosts.
-5. Share the same `DrawingPoint` / `DrawingStroke` command path with local and remote input. The Windows side should render a received point immediately and commit the stroke at end-of-stroke.
-6. Add integration tests for protocol JSON serialization, malformed messages, wrong session keys, disconnect handling, and normalized coordinates.
-7. Only after the manual-IP proof works, implement one-time/short-lived QR pairing.
+## Manual verification
 
-## Web constraint
+1. Build/run the Windows desktop app and start a session.
+2. Build/run the web app from a local HTTP origin on the same PC or network.
+3. Connect with a Windows LAN IPv4 address and session code.
+4. Verify local drawing in each direction, then undo, redo, clear, and snapshot on connect.
+5. Repeat with another browser tab and inspect behavior if one client disconnects.
+6. Validate Windows Firewall prompts on a private network without disabling the firewall.
 
-Browser JavaScript cannot start a listening local socket. The web client must connect to a companion host or use a different deployment model. Do not claim the web build can host a local WebSocket server just because the Windows build can.
+## Follow-up implementation order
 
-## Security requirements
+1. Add an automated Windows desktop build to CI and keep web compilation in CI.
+2. Fix any issues discovered by the manual Windows↔web session test.
+3. Implement the Android client with the same versioned message protocol and manual IP/code entry.
+4. Add short-lived QR pairing and explicit join authorization.
+5. Add reconnect state, host-disconnect handling, and session expiry.
+6. Optimize long strokes with event batching and transient point buffers; profile real device latency before making performance claims.
+7. Add board persistence and PNG export.
 
-- Pairing credentials must be cryptographically random, short-lived, and session-scoped.
-- Require explicit authorization before accepting a device.
-- Never log pairing secrets.
-- Validate message type, session identifier, coordinate range, payload size, and event rate.
-- Bind narrowly and explain LAN-only scope; do not ask users to disable their firewall.
+## Security / platform constraints
 
-## Performance requirements
-
-- Do not rebuild the full board per pointer point. Keep a transient stroke buffer and schedule frame updates.
-- Batch network events across a short frame-sized interval rather than sending a large JSON message for every touch event.
-- Test a long continuous handwritten stroke on a real Android device and Windows host; profile before claiming latency figures.
+- The session code is random and required for WebSocket upgrade; never log or share it publicly.
+- The Windows host binds on IPv4 LAN interfaces and accepts a limited number of clients.
+- Keep the host limited to private LAN use and allow it through Windows Firewall only on Private networks.
+- Browsers cannot run a listening local socket. Production hosting over HTTPS needs a secure local companion/relay approach; this initial local-development slice uses ws://.
+- Validate event schemas, coordinates, message sizes, and event rates before using the session beyond a trusted local network.
