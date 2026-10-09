@@ -9,7 +9,7 @@ class DrawingPoint {
     this.timestampMicros = 0,
   });
 
-  /// Position normalized to the logical canvas size, in the range 0..1.
+  /// Coordinates normalized to the logical canvas size (0..1).
   final double x;
   final double y;
   final double pressure;
