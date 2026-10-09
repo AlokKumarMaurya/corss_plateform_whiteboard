@@ -92,7 +92,7 @@ class _IoSessionHost implements SessionHost {
       } else {
         throw const FormatException('Unsupported WebSocket frame.');
       }
-      if (source.length > 65536) {
+      if (source.length > 1048576) {
         socket.close(WebSocketStatus.messageTooBig, 'Message too large');
         _clients.remove(socket);
         return;
@@ -109,7 +109,7 @@ class _IoSessionHost implements SessionHost {
   @override
   void broadcast(SessionMessage message) {
     final String encoded = message.encode();
-    if (encoded.length > 65536) {
+    if (encoded.length > 1048576) {
       return;
     }
     for (final WebSocket socket in _clients.toList(growable: false)) {
