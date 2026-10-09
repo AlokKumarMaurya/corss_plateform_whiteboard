@@ -22,5 +22,7 @@ jobs:
         run: flutter pub get
       - name: Analyze Dart code
         run: flutter analyze
+      - name: Build web client
+        run: flutter build web
       - name: Run unit tests
         run: flutter test
