@@ -87,6 +87,115 @@ void main() {
     );
   });
 
+  test('two-finger translation does not scroll or zoom', () {
+    controller.setWriteMode(false);
+    controller.pointerDown(
+      const PointerDownEvent(
+        pointer: 1,
+        kind: PointerDeviceKind.touch,
+        position: Offset(20, 50),
+      ),
+    );
+    controller.pointerDown(
+      const PointerDownEvent(
+        pointer: 2,
+        kind: PointerDeviceKind.touch,
+        position: Offset(80, 50),
+      ),
+    );
+
+    controller.pointerMove(
+      const PointerMoveEvent(
+        pointer: 1,
+        kind: PointerDeviceKind.touch,
+        position: Offset(30, 50),
+      ),
+    );
+    controller.pointerMove(
+      const PointerMoveEvent(
+        pointer: 2,
+        kind: PointerDeviceKind.touch,
+        position: Offset(90, 50),
+      ),
+    );
+
+    expect(session.messages, isEmpty);
+  });
+
+  test('two-finger pinch sends zoom events but never scroll events', () {
+    controller.setWriteMode(false);
+    controller.pointerDown(
+      const PointerDownEvent(
+        pointer: 1,
+        kind: PointerDeviceKind.touch,
+        position: Offset(20, 50),
+      ),
+    );
+    controller.pointerDown(
+      const PointerDownEvent(
+        pointer: 2,
+        kind: PointerDeviceKind.touch,
+        position: Offset(80, 50),
+      ),
+    );
+
+    controller.pointerMove(
+      const PointerMoveEvent(
+        pointer: 1,
+        kind: PointerDeviceKind.touch,
+        position: Offset(10, 50),
+      ),
+    );
+
+    expect(session.messages, isNotEmpty);
+    expect(
+      session.messages.map((SessionMessage message) => message.type),
+      everyElement(SessionEventType.zoom),
+    );
+  });
+
+  test('three-finger vertical movement scrolls and never zooms', () {
+    controller.setWriteMode(false);
+    controller.pointerDown(
+      const PointerDownEvent(
+        pointer: 1,
+        kind: PointerDeviceKind.touch,
+        position: Offset(20, 50),
+      ),
+    );
+    controller.pointerDown(
+      const PointerDownEvent(
+        pointer: 2,
+        kind: PointerDeviceKind.touch,
+        position: Offset(50, 50),
+      ),
+    );
+    controller.pointerDown(
+      const PointerDownEvent(
+        pointer: 3,
+        kind: PointerDeviceKind.touch,
+        position: Offset(80, 50),
+      ),
+    );
+
+    controller.pointerMove(
+      const PointerMoveEvent(
+        pointer: 1,
+        kind: PointerDeviceKind.touch,
+        position: Offset(20, 40),
+      ),
+    );
+
+    expect(session.messages, isNotEmpty);
+    expect(
+      session.messages.map((SessionMessage message) => message.type),
+      everyElement(SessionEventType.scroll),
+    );
+    expect(session.messages.every(
+      (SessionMessage message) => message.payload['dx'] == 0.0,
+    ), isTrue);
+  });
+
   test('tablet mode maps each touch position to absolute desktop coordinates', () {
     controller.setPadSize(const Size(100, 200));
     controller.setTabletMode(true);
