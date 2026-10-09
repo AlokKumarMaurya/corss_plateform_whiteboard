@@ -1,28 +1,36 @@
 # Cross-Platform Whiteboard
 
-A Flutter whiteboard designed for Windows and web, with Android planned as a wireless finger/stylus writing tablet over the same Wi-Fi network.
+A Flutter teaching whiteboard for Windows and web, controlled by an Android phone used as a wireless stylus-enabled input pad. The desktop/browser owns the large canvas; the phone sends real-time pointer, drawing, and gesture input. The phone is not intended to display a second whiteboard and mirror its completed strokes.
 
-## Current implementation
+## Intended user experience
 
-The main branch contains the local whiteboard foundation. The feature/windows-web-live-session branch adds the first live-session slice:
+- Open the large whiteboard on Windows or in a desktop browser for teaching and screen recording.
+- Connect an Android phone on the same private Wi-Fi network.
+- Use a finger or stylus on the phone's input surface. Direct-touch coordinates move the pointer within the desktop whiteboard canvas; drawing contact creates ink on the desktop canvas.
+- Drag with two fingers to pan and pinch to zoom the desktop canvas.
+- Use desktop/web tools for the authoritative board, undo/redo, erase, and clear.
+
+## Current implementation status
+
+The main branch contains the local whiteboard foundation. The feature/windows-web-live-session branch is an early WebSocket/session prototype:
 
 - Windows desktop can start a LAN WebSocket host on port 8765.
 - The web build can connect to a Windows host using its local IPv4 address and a session code.
 - Drawing events use a versioned JSON protocol with normalized coordinates.
-- Pen strokes, remote stroke updates, undo, redo, clear, and initial board snapshots are synchronized.
-- The server requires a cryptographically random session code and limits clients and message sizes.
-- GetX owns UI state, route bindings, and session state; the transport and protocol live in separate feature layers.
-
-This is an early manual-testing milestone, not a finished multi-device release. Android pairing/client UI, QR pairing, persistent boards, and PNG export are not implemented yet.
+- The prototype currently synchronizes board/stroke events between clients. It is transport groundwork, not yet the final mobile input-pad experience.
+- Android input-pad UI, remote pointer injection into the desktop canvas, two-finger pan, pinch-to-zoom, and QR pairing still need to be implemented and tested.
 
 ## Architecture
 
 - Feature-first folders with domain/data/presentation boundaries.
-- GetX for state management, bindings, and navigation via GetPage.
-- Drawing models use numeric ARGB values and normalized coordinates for transport portability.
-- User-facing strings are centralized in lib/core/strings/app_strings.dart.
-- Common UI patterns live in lib/shared/widgets/.
-- Windows-only host code is loaded through a conditional import, so the web build does not import dart:io.
+- GetX for state management, route bindings, and navigation via GetPage.
+- Desktop/web is authoritative for canvas state, rendering, transforms, and board mutations.
+- Android sends versioned input events (pointer move/down/up, optional stylus metadata, tool commands, pan, and pinch); it does not own a replicated full-size board.
+- Normalize phone input coordinates and map them to the desktop canvas viewport. Keep pointer movement separate from drawing contact so moving the pointer does not automatically draw.
+- Keep gesture recognition and arbitration on the input side, and apply pan/zoom transforms on the host canvas.
+- Keep WebSocket transport behind an abstraction and platform-specific host creation behind conditional imports. Browsers cannot listen on a local network port; the initial LAN host is Windows.
+- GetX owns UI state, route bindings, and navigation. Keep protocol/transport and drawing-domain logic separate from widgets.
+- User-facing strings are centralized in lib/core/strings/app_strings.dart; reusable UI belongs in lib/shared/widgets/.
 
 ## Development
 
@@ -35,17 +43,25 @@ Run these commands from the repository root:
     flutter run -d windows
     flutter run -d chrome
 
-## Test Windows + web on the same network
+## Current prototype smoke test
 
-1. Run flutter run -d windows and click Start Windows host.
-2. Keep the Windows app open. Copy one displayed local IPv4 address and the session code.
+1. Run flutter run -d windows and click **Start Windows host**.
+2. Keep the Windows app open. Copy a displayed private IPv4 address and the session code.
 3. Run flutter run -d chrome on the same PC, or open the web build from a local HTTP origin.
 4. In the web app, enter the Windows IPv4 address and session code, then connect.
-5. Draw on either canvas. Test a few strokes, undo, redo, and clear.
-6. If connection fails, verify both devices are on the same private Wi-Fi/LAN and allow the app through Windows Firewall for Private networks. Do not disable the firewall.
+5. The current prototype synchronizes drawing/board events between the clients. This is only a transport smoke test; it does not yet validate the intended phone-as-input-pad workflow.
 
-The browser cannot listen for incoming local WebSocket connections. In this design Windows is the host and web is a client. A deployed HTTPS web site cannot connect to this plain ws:// LAN endpoint in all browsers because of mixed-content restrictions; use the local development web origin for this milestone. A production web deployment needs a secure local companion/relay design.
+## Target end-to-end test
+
+1. Start the Windows host and connect an Android phone on the same private Wi-Fi.
+2. Move the stylus without drawing and verify the desktop canvas pointer follows without adding ink.
+3. Press and write on the phone; verify strokes render on the desktop canvas in real time.
+4. Drag two fingers to pan and pinch to zoom; verify gestures do not create strokes.
+5. Verify undo/redo/erase/clear, disconnect during a stroke, reconnect, and host shutdown behavior.
+6. Separately build and test the web canvas. The browser cannot listen for incoming local WebSocket connections.
+
+A deployed HTTPS web app cannot generally connect to a plain ws:// LAN endpoint because of mixed-content restrictions. A production web deployment needs a secure local companion/relay design.
 
 ## Package note
 
-The requested clean_util package name did not resolve on pub.dev during CI, so it is intentionally not included. Confirm the exact package URL if a different package was intended.
+The requested clean_util package name did not resolve on pub.dev, so it is intentionally not included. Confirm the exact package URL if a different package was intended.
