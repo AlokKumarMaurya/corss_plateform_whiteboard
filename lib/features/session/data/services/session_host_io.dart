@@ -77,10 +77,8 @@ class _IoSessionHost implements SessionHost {
         cancelOnError: true,
       );
     } on WebSocketException {
-      if (!request.response.headersSent) {
-        request.response.statusCode = HttpStatus.badRequest;
-        await request.response.close();
-      }
+      // The upgrade can fail after the response has started; do not attempt
+      // to write a second HTTP response in that case.
     }
   }
 
@@ -103,7 +101,7 @@ class _IoSessionHost implements SessionHost {
       _messages.add(message);
       broadcast(message);
     } on FormatException {
-      socket.close(WebSocketStatus.invalidFrame, 'Invalid session message');
+      socket.close(WebSocketStatus.protocolError, 'Invalid session message');
       _clients.remove(socket);
     }
   }
