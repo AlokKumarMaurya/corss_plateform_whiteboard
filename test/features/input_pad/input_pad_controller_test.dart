@@ -85,6 +85,47 @@ void main() {
     );
   });
 
+  test('tablet mode maps each touch position to absolute desktop coordinates', () {
+    controller.setPadSize(const Size(100, 200));
+    controller.setTabletMode(true);
+
+    controller.pointerDown(
+      const PointerDownEvent(
+        pointer: 1,
+        kind: PointerDeviceKind.stylus,
+        position: Offset(25, 50),
+      ),
+    );
+    controller.pointerMove(
+      const PointerMoveEvent(
+        pointer: 1,
+        kind: PointerDeviceKind.stylus,
+        position: Offset(35, 70),
+      ),
+    );
+    controller.pointerUp(
+      const PointerUpEvent(
+        pointer: 1,
+        kind: PointerDeviceKind.stylus,
+        position: Offset(35, 70),
+      ),
+    );
+
+    expect(
+      session.messages.map((SessionMessage message) => message.type),
+      <String>[
+        SessionEventType.pointerMoveAbsolute,
+        SessionEventType.pointerDown,
+        SessionEventType.pointerMoveAbsolute,
+        SessionEventType.pointerUp,
+      ],
+    );
+    expect(session.messages[0].payload['x'], 0.25);
+    expect(session.messages[0].payload['y'], 0.25);
+    expect(session.messages[2].payload['x'], 0.35);
+    expect(session.messages[2].payload['y'], 0.35);
+  });
+
   test('stylus hover repositions the pointer without drawing', () {
     controller.pointerHover(
       const PointerHoverEvent(
