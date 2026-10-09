@@ -163,13 +163,20 @@ class RealtimeSessionService extends GetxService implements DrawingSyncGateway {
   }
 
   bool _isPrivateIpv4(String address) {
-    final List<int> octets = address.split('.').map(int.tryParse).toList();
-    if (octets.length != 4 ||
-        octets.any((int? octet) => octet == null || octet < 0 || octet > 255)) {
-      return false;
+    final List<String> parts = address.split('.');
+    if (parts.length != 4) return false;
+
+    final List<int> octets = <int>[];
+    for (final String part in parts) {
+      final int? octet = int.tryParse(part);
+      if (octet == null || octet < 0 || octet > 255) {
+        return false;
+      }
+      octets.add(octet);
     }
-    final int first = octets[0]!;
-    final int second = octets[1]!;
+
+    final int first = octets[0];
+    final int second = octets[1];
     return first == 10 ||
         (first == 172 && second >= 16 && second <= 31) ||
         (first == 192 && second == 168);
