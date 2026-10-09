@@ -1,7 +1,6 @@
 import 'package:cross_platform_whiteboard/core/strings/app_strings.dart';
 import 'package:cross_platform_whiteboard/features/input_pad/presentation/controllers/input_pad_controller.dart';
 import 'package:cross_platform_whiteboard/features/session/presentation/widgets/session_panel.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
