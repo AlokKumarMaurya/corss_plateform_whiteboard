@@ -47,7 +47,11 @@ class DrawingCanvas extends StatelessWidget {
                     () => CustomPaint(
                       painter: _DrawingPainter(
                         strokes: controller.strokes,
-                        activeStroke: controller.activeStroke.value,
+                        activeStrokes: <DrawingStroke>[
+                          ...controller.remoteActiveStrokes,
+                          if (controller.activeStroke.value case final DrawingStroke stroke)
+                            stroke,
+                        ],
                       ),
                       size: size,
                     ),
@@ -75,16 +79,19 @@ class DrawingCanvas extends StatelessWidget {
 }
 
 class _DrawingPainter extends CustomPainter {
-  const _DrawingPainter({required this.strokes, required this.activeStroke});
+  const _DrawingPainter({
+    required this.strokes,
+    required this.activeStrokes,
+  });
 
   final List<DrawingStroke> strokes;
-  final DrawingStroke? activeStroke;
+  final List<DrawingStroke> activeStrokes;
 
   @override
   void paint(Canvas canvas, Size size) {
     for (final DrawingStroke stroke in <DrawingStroke>[
       ...strokes,
-      if (activeStroke != null) activeStroke!,
+      ...activeStrokes,
     ]) {
       _paintStroke(canvas, size, stroke);
     }
@@ -128,5 +135,6 @@ class _DrawingPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _DrawingPainter oldDelegate) =>
-      oldDelegate.strokes != strokes || oldDelegate.activeStroke != activeStroke;
+      oldDelegate.strokes != strokes ||
+      oldDelegate.activeStrokes != activeStrokes;
 }
