@@ -1,4 +1,4 @@
-import 'package:cross_platform_whiteboard/main.dart';
+import 'package:cross_platform_whiteboard/app/app.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
