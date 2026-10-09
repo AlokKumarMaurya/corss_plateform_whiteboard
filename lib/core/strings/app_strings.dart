@@ -14,7 +14,11 @@ abstract final class AppStrings {
   static const String trackpadModeHint =
       'Relative movement. Use Move mode to reposition between strokes.';
   static const String tabletModeHint =
-      'Touch positions map to the Windows desktop for accurate separate strokes.';
+      'Touch positions map to Windows. The pad edges snap to desktop edges; zoom for precision and move the mapped area to reach corners.';
+  static const String tabletPrecision = 'Tablet precision';
+  static const String desktopAreaHorizontal = 'Desktop area · horizontal';
+  static const String desktopAreaVertical = 'Desktop area · vertical';
+  static const String tabletMappingReset = 'Reset mapping';
   static const String writeModeHint = 'Drag to write. Hover a supported stylus to reposition without drawing.';
   static const String moveModeHint = 'Drag to move the cursor; tap to click.';
   static const String twoFingerHint = 'Two fingers scroll or pinch to zoom.';
