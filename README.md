@@ -42,7 +42,7 @@ Build the Windows companion with:
 
 1. Connect Windows and Android to the same trusted private Wi-Fi network.
 2. Run the Windows companion and click **Start Windows companion**.
-3. Copy one of the private IPv4 addresses and the session code displayed by Windows.
+3. Copy one of the private IPv4 addresses and the 10-character session code displayed by Windows.
 4. In the Android app, enter the address and code, then connect.
 5. Open Paint on Windows and make sure Paint is the active application.
 6. Use the phone's touch surface to write; verify Paint receives the strokes.
