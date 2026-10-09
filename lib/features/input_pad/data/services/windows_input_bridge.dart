@@ -23,7 +23,13 @@ class WindowsInputBridge {
       !kIsWeb && defaultTargetPlatform == TargetPlatform.windows;
 
   Future<void> _handleMessage(SessionMessage message) async {
-    if (!_session.isHost || message.senderId == _session.clientId) return;
+    final bool forcedRelease =
+        message.type == SessionEventType.pointerUp &&
+        message.senderId == 'session-host';
+    if ((!_session.isHost && !forcedRelease) ||
+        message.senderId == _session.clientId) {
+      return;
+    }
 
     final Map<String, dynamic> payload = message.payload;
     try {
