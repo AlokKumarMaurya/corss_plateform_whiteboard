@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui';
 
 import 'package:cross_platform_whiteboard/features/session/data/services/realtime_session_service.dart';
 import 'package:cross_platform_whiteboard/features/session/domain/models/session_event_type.dart';
