@@ -1,3 +1,4 @@
+import 'package:cross_platform_whiteboard/core/strings/app_strings.dart';
 import 'package:cross_platform_whiteboard/features/drawing/domain/models/drawing_point.dart';
 import 'package:cross_platform_whiteboard/features/drawing/domain/models/drawing_stroke.dart';
 import 'package:cross_platform_whiteboard/features/whiteboard/presentation/controllers/whiteboard_controller.dart';
@@ -16,7 +17,7 @@ class DrawingCanvas extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: 'Whiteboard drawing area',
+      label: AppStrings.canvasSemanticsLabel,
       child: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
           final Size canvasSize = Size(
