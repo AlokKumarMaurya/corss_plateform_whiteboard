@@ -128,6 +128,41 @@ void main() {
     expect(session.messages[2].payload['y'], 0.35);
   });
 
+  test('tablet mapping snaps touch edges to desktop edges', () {
+    controller.setPadSize(const Size(100, 100));
+    controller.setTabletMode(true);
+
+    controller.pointerDown(
+      const PointerDownEvent(
+        pointer: 1,
+        kind: PointerDeviceKind.stylus,
+        position: Offset(2, 98),
+      ),
+    );
+
+    expect(session.messages.first.payload['x'], 0.0);
+    expect(session.messages.first.payload['y'], 1.0);
+  });
+
+  test('tablet zoom maps the touch pad to a movable desktop region', () {
+    controller.setPadSize(const Size(100, 100));
+    controller.setTabletMode(true);
+    controller.setTabletZoom(2);
+    controller.setTabletAreaX(1);
+    controller.setTabletAreaY(0);
+
+    controller.pointerDown(
+      const PointerDownEvent(
+        pointer: 1,
+        kind: PointerDeviceKind.stylus,
+        position: Offset(50, 50),
+      ),
+    );
+
+    expect(session.messages.first.payload['x'], 0.75);
+    expect(session.messages.first.payload['y'], 0.25);
+  });
+
   test('stylus hover repositions the pointer without drawing', () {
     controller.pointerHover(
       const PointerHoverEvent(
