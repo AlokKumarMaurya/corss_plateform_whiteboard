@@ -33,7 +33,7 @@ void SendMouseInput(DWORD flags, LONG dx = 0, LONG dy = 0,
   input.mi.dy = dy;
   input.mi.mouseData = mouse_data;
   input.mi.dwFlags = flags;
-  SendInput(1, &input, static_cast<int>(sizeof(INPUT)));
+  SendInput(1, &input, static_cast<UINT>(sizeof(INPUT)));
 }
 
 void SendControlKey(bool key_up) {
