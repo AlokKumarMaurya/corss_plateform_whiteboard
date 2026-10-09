@@ -1,6 +1,7 @@
 import 'package:cross_platform_whiteboard/core/constants/drawing_constants.dart';
 import 'package:cross_platform_whiteboard/core/strings/app_strings.dart';
 import 'package:cross_platform_whiteboard/features/drawing/domain/models/drawing_tool.dart';
+import 'package:cross_platform_whiteboard/features/drawing/domain/models/drawing_stroke.dart';
 import 'package:cross_platform_whiteboard/features/drawing/presentation/widgets/drawing_canvas.dart';
 import 'package:cross_platform_whiteboard/features/whiteboard/presentation/controllers/whiteboard_controller.dart';
 import 'package:cross_platform_whiteboard/shared/widgets/canvas_surface.dart';
@@ -137,19 +138,19 @@ class _Toolbar extends GetView<WhiteboardController> {
       );
 
   List<Widget> _colorOptions() => <Color>[
-        DrawingConstants.defaultColor,
+        const Color(0xFF172033),
         const Color(0xFF3157D5),
         const Color(0xFFE5484D),
         const Color(0xFF1D9A70),
       ].map((Color color) => Obx(() => _ColorDot(
             color: color,
-            selected: controller.selectedColor.value == color,
+            selected: controller.selectedColorValue.value == color.value,
             label: _colorName(color),
             onTap: () => controller.setColor(color),
           ))).toList(growable: false);
 
   String _colorName(Color color) {
-    if (color == DrawingConstants.defaultColor) return AppStrings.colorBlack;
+    if (color == const Color(0xFF172033)) return AppStrings.colorBlack;
     if (color == const Color(0xFF3157D5)) return AppStrings.colorBlue;
     if (color == const Color(0xFFE5484D)) return AppStrings.colorRed;
     return AppStrings.colorGreen;
