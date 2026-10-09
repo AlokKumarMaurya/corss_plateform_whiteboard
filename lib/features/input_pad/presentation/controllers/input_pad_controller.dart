@@ -185,8 +185,8 @@ class InputPadController extends GetxController {
 
     final double distanceChange = distance - previousDistance;
     final double distanceRatio = distanceChange.abs() / previousDistance;
-    if (distanceRatio >= 0.012) {
-      final int zoomDelta = (distanceChange * 6.0).round().clamp(-480, 480);
+    if (distanceChange.abs() >= 1.0 || distanceRatio >= 0.005) {
+      final int zoomDelta = (distanceChange * 30.0).round().clamp(-480, 480);
       if (zoomDelta != 0) {
         _send(SessionEventType.zoom, <String, dynamic>{'delta': zoomDelta});
       }
