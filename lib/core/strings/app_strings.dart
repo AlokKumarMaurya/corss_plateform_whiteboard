@@ -2,6 +2,15 @@ import 'package:cross_platform_whiteboard/core/constants/session_constants.dart'
 
 abstract final class AppStrings {
   static const String appName = 'Wireless Stylus Pad';
+  static const String inputMode = 'Input mode';
+  static const String modeWrite = 'Write';
+  static const String modeMove = 'Move';
+  static const String pointerSpeed = 'Pointer speed';
+  static const String scrollSpeed = 'Scroll speed';
+  static const String inputSettings = 'Input settings';
+  static const String writeModeHint = 'Drag to write in the active Windows app.';
+  static const String moveModeHint = 'Drag to move the cursor; tap to click.';
+  static const String twoFingerHint = 'Two fingers scroll or pinch to zoom.'
   static const String whiteboardTitle = 'Windows companion';
   static const String whiteboardSubtitle =
       'Connect your phone and control the active Windows application.';
