@@ -17,6 +17,8 @@ class InputPadController extends GetxController {
 
   final RealtimeSessionService _session;
   final Map<int, Offset> _contacts = <int, Offset>{};
+  Size _padSize = Size.zero;
+  final RxBool _tabletMode = false.obs;
   final RxBool _isNavigating = false.obs;
   final RxBool _writeMode = true.obs;
   final RxDouble _pointerSensitivity = 1.0.obs;
@@ -33,6 +35,7 @@ class InputPadController extends GetxController {
 
   bool get isNavigating => _isNavigating.value;
   bool get writeMode => _writeMode.value;
+  bool get tabletMode => _tabletMode.value;
   double get pointerSensitivity => _pointerSensitivity.value;
   double get scrollSensitivity => _scrollSensitivity.value;
   String get hint => _hint.value;
@@ -51,6 +54,15 @@ class InputPadController extends GetxController {
         : AppStrings.moveModeHint;
   }
 
+  void setPadSize(Size value) {
+    if (_padSize == value) return;
+    _padSize = value;
+  }
+
+  void setTabletMode(bool value) {
+    _tabletMode.value = value;
+  }
+
   void setPointerSensitivity(double value) {
     _pointerSensitivity.value = value.clamp(0.5, 2.5).toDouble();
   }
@@ -63,6 +75,10 @@ class InputPadController extends GetxController {
   /// the phone. This lets users reposition between separate writing strokes.
   void pointerHover(PointerHoverEvent event) {
     if (_contacts.isNotEmpty || !_isStylus(event.kind)) return;
+    if (_tabletMode.value) {
+      _sendAbsolutePosition(event.localPosition);
+      return;
+    }
     final Offset delta = event.localDelta;
     if (delta.distanceSquared == 0) return;
     _send(SessionEventType.pointerMove, <String, dynamic>{
@@ -75,6 +91,7 @@ class InputPadController extends GetxController {
     _contacts[event.pointer] = event.localPosition;
 
     if (_contacts.length == 1) {
+      if (_tabletMode.value) _sendAbsolutePosition(event.localPosition);
       _singleMoved = false;
       _suppressSingleUntilAllUp = false;
       if (!_writeMode.value) {
@@ -135,6 +152,17 @@ class InputPadController extends GetxController {
     }
 
     if (_suppressSingleUntilAllUp) {
+      return;
+    }
+
+    if (_tabletMode.value) {
+      _singleMoved = true;
+      _pendingFingerPress?.cancel();
+      _pendingFingerPress = null;
+      if (_writeMode.value && !_leftButtonDown) {
+        _pressLeftButton();
+      }
+      _sendAbsolutePosition(event.localPosition);
       return;
     }
 
@@ -260,6 +288,16 @@ class InputPadController extends GetxController {
   bool _isStylus(PointerDeviceKind kind) =>
       kind == PointerDeviceKind.stylus ||
       kind == PointerDeviceKind.invertedStylus;
+
+  void _sendAbsolutePosition(Offset position) {
+    if (_padSize.width <= 0 || _padSize.height <= 0) return;
+    final double x = (position.dx / _padSize.width).clamp(0.0, 1.0).toDouble();
+    final double y = (position.dy / _padSize.height).clamp(0.0, 1.0).toDouble();
+    _send(SessionEventType.pointerMoveAbsolute, <String, dynamic>{
+      'x': x,
+      'y': y,
+    });
+  }
 
   void _pressLeftButton() {
     if (_leftButtonDown || !_isConnected) return;
