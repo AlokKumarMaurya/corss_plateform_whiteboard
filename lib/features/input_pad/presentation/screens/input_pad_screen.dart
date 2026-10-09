@@ -186,6 +186,47 @@ class _InputPadControls extends StatelessWidget {
                   ),
                   if (controller.tabletMode) ...<Widget>[
                     const SizedBox(height: 12),
+                    Text(
+                      AppStrings.tabletMappingPreset,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    SegmentedButton<String>(
+                      segments: const <ButtonSegment<String>>[
+                        ButtonSegment<String>(
+                          value: 'auto_fit',
+                          icon: Icon(Icons.fit_screen_rounded),
+                          label: Text(AppStrings.tabletPresetAutoFit),
+                        ),
+                        ButtonSegment<String>(
+                          value: 'balanced',
+                          icon: Icon(Icons.center_focus_weak_rounded),
+                          label: Text(AppStrings.tabletPresetBalanced),
+                        ),
+                        ButtonSegment<String>(
+                          value: 'fine_writing',
+                          icon: Icon(Icons.edit_rounded),
+                          label: Text(AppStrings.tabletPresetFineWriting),
+                        ),
+                      ],
+                      selected: <String>{
+                        if (controller.tabletPreset != 'custom')
+                          controller.tabletPreset,
+                      },
+                      emptySelectionAllowed: true,
+                      showSelectedIcon: false,
+                      onSelectionChanged: (Set<String> selection) {
+                        if (selection.isNotEmpty) {
+                          controller.applyTabletPreset(selection.first);
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      AppStrings.tabletPresetHint,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 12),
                     _SensitivitySlider(
                       label: AppStrings.tabletPrecision,
                       value: controller.tabletZoom,
@@ -211,11 +252,8 @@ class _InputPadControls extends StatelessWidget {
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton.icon(
-                        onPressed: () {
-                          controller.setTabletZoom(1);
-                          controller.setTabletAreaX(0.5);
-                          controller.setTabletAreaY(0.5);
-                        },
+                        onPressed: () =>
+                            controller.applyTabletPreset('auto_fit'),
                         icon: const Icon(Icons.center_focus_strong_rounded),
                         label: const Text(AppStrings.tabletMappingReset),
                       ),
