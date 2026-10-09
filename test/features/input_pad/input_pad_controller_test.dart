@@ -3,7 +3,6 @@ import 'package:cross_platform_whiteboard/features/session/data/services/realtim
 import 'package:cross_platform_whiteboard/features/session/domain/models/session_event_type.dart';
 import 'package:cross_platform_whiteboard/features/session/domain/models/session_message.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/widgets.dart' show Offset;
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
