@@ -15,7 +15,7 @@ class RealtimeSessionService extends GetxService implements DrawingSyncGateway {
   RealtimeSessionService() : _clientId = _randomHex(16);
 
   static const int defaultPort = 8765;
-  static const int _maximumMessageLength = 65536;
+  static const int _maximumMessageLength = 1048576;
 
   final SessionHost _host = createSessionHost();
   final String _clientId;
