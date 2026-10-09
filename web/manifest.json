@@ -1,10 +1,35 @@
 {
-  "name": "Cross-Platform Whiteboard",
-  "short_name": "Whiteboard",
-  "start_url": ".",
-  "display": "standalone",
-  "background_color": "#f7f8fc",
-  "theme_color": "#f7f8fc",
-  "description": "A cross-platform collaborative whiteboard.",
-  "orientation": "any"
+    "name": "cross_platform_whiteboard",
+    "short_name": "cross_platform_whiteboard",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#0175C2",
+    "theme_color": "#0175C2",
+    "description": "A new Flutter project.",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false,
+    "icons": [
+        {
+            "src": "icons/Icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-maskable-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icons/Icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
 }
