@@ -19,6 +19,26 @@ void main() {
       expect(decoded.payload, message.payload);
     });
 
+    test('accepts remote pointer and gesture events', () {
+      const List<String> inputEvents = <String>[
+        SessionEventType.pointerMove,
+        SessionEventType.pointerDown,
+        SessionEventType.pointerUp,
+        SessionEventType.scroll,
+        SessionEventType.zoom,
+      ];
+
+      for (final String event in inputEvents) {
+        final SessionMessage message = SessionMessage(
+          senderId: 'phone',
+          type: event,
+          payload: const <String, dynamic>{'dx': 2.0, 'dy': -1.0},
+        );
+
+        expect(SessionMessage.decode(message.encode()).type, event);
+      }
+    });
+
     test('rejects an unsupported protocol version', () {
       expect(
         () => SessionMessage.fromJson(<String, dynamic>{
