@@ -5,7 +5,6 @@ import 'package:cross_platform_whiteboard/features/session/domain/models/session
 import 'package:cross_platform_whiteboard/features/session/domain/models/session_message.dart';
 import 'package:cross_platform_whiteboard/features/session/domain/models/session_status.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 /// Converts phone touch/stylus contacts into remote system pointer events.
@@ -155,6 +154,8 @@ class InputPadController extends GetxController {
       _suppressSingleUntilAllUp = false;
       _gestureCenter = null;
       _gestureDistance = null;
+    } else {
+      _suppressSingleUntilAllUp = true;
     }
   }
 
@@ -185,7 +186,7 @@ class InputPadController extends GetxController {
     final double distanceChange = distance - previousDistance;
     final double distanceRatio = distanceChange.abs() / previousDistance;
     if (distanceRatio >= 0.012) {
-      final int zoomDelta = (distanceChange * 2.0).round().clamp(-480, 480);
+      final int zoomDelta = (distanceChange * 6.0).round().clamp(-480, 480);
       if (zoomDelta != 0) {
         _send(SessionEventType.zoom, <String, dynamic>{'delta': zoomDelta});
       }
@@ -208,6 +209,7 @@ class InputPadController extends GetxController {
 
   void _pressLeftButton() {
     if (_leftButtonDown) return;
+    if (!_isConnected) return;
     _leftButtonDown = true;
     _send(SessionEventType.pointerDown, const <String, dynamic>{});
   }
@@ -218,10 +220,11 @@ class InputPadController extends GetxController {
     _send(SessionEventType.pointerUp, const <String, dynamic>{});
   }
 
+  bool get _isConnected =>
+      _session.isHost || _session.status.value == SessionStatus.connected;
+
   void _send(String type, Map<String, dynamic> payload) {
-    if (!_session.isHost && _session.status.value != SessionStatus.connected) {
-      return;
-    }
+    if (!_isConnected) return;
     _session.publish(
       SessionMessage(senderId: _session.clientId, type: type, payload: payload),
     );
