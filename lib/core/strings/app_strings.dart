@@ -28,7 +28,8 @@ abstract final class AppStrings {
   static const String tabletMappingReset = 'Reset mapping';
   static const String writeModeHint = 'Drag to write. Hover a supported stylus to reposition without drawing.';
   static const String moveModeHint = 'Drag to move the cursor; tap to click.';
-  static const String twoFingerHint = 'Two fingers scroll or pinch to zoom.';
+  static const String twoFingerZoomHint = 'Two fingers: pinch to zoom in or out.';
+  static const String threeFingerScrollHint = 'Three fingers: swipe up or down to scroll.';
   static const String initialInputHint =
       'Write with one finger, or switch to Move to control the cursor.';
   static const String whiteboardTitle = 'Windows companion';
