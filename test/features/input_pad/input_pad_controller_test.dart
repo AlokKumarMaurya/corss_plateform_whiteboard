@@ -1,3 +1,5 @@
+import 'dart:ui' show Size;
+
 import 'package:cross_platform_whiteboard/features/input_pad/presentation/controllers/input_pad_controller.dart';
 import 'package:cross_platform_whiteboard/features/session/data/services/realtime_session_service.dart';
 import 'package:cross_platform_whiteboard/features/session/domain/models/session_event_type.dart';
