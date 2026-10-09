@@ -10,12 +10,11 @@ import 'package:get/get.dart';
 
 class WhiteboardController extends GetxController {
   WhiteboardController(this._repository);
-
   final DrawingRepository _repository;
   final RxList<DrawingStroke> _strokes = <DrawingStroke>[].obs;
   final Rxn<DrawingStroke> activeStroke = Rxn<DrawingStroke>();
   final Rx<DrawingTool> selectedTool = DrawingTool.pen.obs;
-  final Rx<Color> selectedColor = DrawingConstants.defaultColor.obs;
+  final RxInt selectedColorValue = const Color(0xFF172033).value.obs;
   final RxDouble strokeWidth = DrawingConstants.defaultStrokeWidth.obs;
   final RxBool _canRedo = false.obs;
   final List<DrawingStroke> _redoStack = <DrawingStroke>[];
@@ -24,33 +23,20 @@ class WhiteboardController extends GetxController {
   bool get canUndo => _strokes.isNotEmpty;
   bool get canRedo => _canRedo.value;
   bool get isEmpty => _strokes.isEmpty && activeStroke.value == null;
+  Color get selectedColor => Color(selectedColorValue.value);
 
   @override
-  void onInit() {
-    super.onInit();
-    _strokes.assignAll(_repository.strokes);
-  }
-
+  void onInit() { super.onInit(); _strokes.assignAll(_repository.strokes); }
   void setTool(DrawingTool tool) => selectedTool.value = tool;
-
-  void setColor(Color color) {
-    selectedColor.value = color;
-    selectedTool.value = DrawingTool.pen;
-  }
-
-  void setStrokeWidth(double width) {
-    strokeWidth.value = width
-        .clamp(DrawingConstants.minimumStrokeWidth, DrawingConstants.maximumStrokeWidth)
-        .toDouble();
-  }
+  void setColor(Color color) { selectedColorValue.value = color.value; selectedTool.value = DrawingTool.pen; }
+  void setStrokeWidth(double width) => strokeWidth.value = width.clamp(DrawingConstants.minimumStrokeWidth, DrawingConstants.maximumStrokeWidth).toDouble();
 
   void startStroke(Offset position, Size size, {double pressure = 1}) {
     if (size.isEmpty) return;
     final bool erasing = selectedTool.value == DrawingTool.eraser;
     activeStroke.value = DrawingStroke(
-      id: _createStrokeId(),
-      points: <DrawingPoint>[_normalizePoint(position, size, pressure)],
-      color: erasing ? Colors.white : selectedColor.value,
+      id: _createStrokeId(), points: <DrawingPoint>[_normalizePoint(position, size, pressure)],
+      colorValue: erasing ? Colors.white.value : selectedColorValue.value,
       width: erasing ? math.max(strokeWidth.value * 4, 16) : strokeWidth.value,
       isEraser: erasing,
     );
@@ -59,53 +45,23 @@ class WhiteboardController extends GetxController {
   void appendPoint(Offset position, Size size, {double pressure = 1}) {
     final DrawingStroke? current = activeStroke.value;
     if (current == null || size.isEmpty) return;
-    activeStroke.value = current.copyWith(
-      points: <DrawingPoint>[
-        ...current.points,
-        _normalizePoint(position, size, pressure),
-      ],
-    );
+    activeStroke.value = current.copyWith(points: <DrawingPoint>[...current.points, _normalizePoint(position, size, pressure)]);
   }
 
   void finishStroke() {
     final DrawingStroke? stroke = activeStroke.value;
     if (stroke == null) return;
-    _strokes.add(stroke);
-    _repository.replaceStrokes(_strokes);
-    _redoStack.clear();
-    _canRedo.value = false;
-    activeStroke.value = null;
+    _strokes.add(stroke); _repository.replaceStrokes(_strokes); _redoStack.clear(); _canRedo.value = false; activeStroke.value = null;
   }
+  void undo() { if (_strokes.isEmpty) return; _redoStack.add(_strokes.removeLast()); _canRedo.value = true; _repository.replaceStrokes(_strokes); }
+  void redo() { if (_redoStack.isEmpty) return; _strokes.add(_redoStack.removeLast()); _canRedo.value = _redoStack.isNotEmpty; _repository.replaceStrokes(_strokes); }
+  void clearCanvas() { _strokes.clear(); activeStroke.value = null; _redoStack.clear(); _canRedo.value = false; _repository.replaceStrokes(_strokes); }
 
-  void undo() {
-    if (_strokes.isEmpty) return;
-    _redoStack.add(_strokes.removeLast());
-    _canRedo.value = true;
-    _repository.replaceStrokes(_strokes);
-  }
-
-  void redo() {
-    if (_redoStack.isEmpty) return;
-    _strokes.add(_redoStack.removeLast());
-    _canRedo.value = _redoStack.isNotEmpty;
-    _repository.replaceStrokes(_strokes);
-  }
-
-  void clearCanvas() {
-    _strokes.clear();
-    activeStroke.value = null;
-    _redoStack.clear();
-    _canRedo.value = false;
-    _repository.replaceStrokes(_strokes);
-  }
-
-  DrawingPoint _normalizePoint(Offset position, Size size, double pressure) =>
-      DrawingPoint(
-        x: (position.dx / size.width).clamp(0.0, 1.0).toDouble(),
-        y: (position.dy / size.height).clamp(0.0, 1.0).toDouble(),
-        pressure: pressure.isFinite ? pressure.clamp(0.0, 1.0).toDouble() : 1,
-        timestampMicros: DateTime.now().microsecondsSinceEpoch,
-      );
-
+  DrawingPoint _normalizePoint(Offset position, Size size, double pressure) => DrawingPoint(
+    x: (position.dx / size.width).clamp(0.0, 1.0).toDouble(),
+    y: (position.dy / size.height).clamp(0.0, 1.0).toDouble(),
+    pressure: pressure.isFinite ? pressure.clamp(0.0, 1.0).toDouble() : 1,
+    timestampMicros: DateTime.now().microsecondsSinceEpoch,
+  );
   String _createStrokeId() => '${DateTime.now().microsecondsSinceEpoch}-${_strokes.length}';
 }
