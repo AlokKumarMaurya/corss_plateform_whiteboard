@@ -51,11 +51,11 @@ class InputPadController extends GetxController {
   }
 
   void setPointerSensitivity(double value) {
-    _pointerSensitivity.value = value.clamp(0.5, 2.5);
+    _pointerSensitivity.value = value.clamp(0.5, 2.5).toDouble();
   }
 
   void setScrollSensitivity(double value) {
-    _scrollSensitivity.value = value.clamp(1.0, 8.0);
+    _scrollSensitivity.value = value.clamp(1.0, 8.0).toDouble();
   }
 
   void pointerDown(PointerDownEvent event) {
