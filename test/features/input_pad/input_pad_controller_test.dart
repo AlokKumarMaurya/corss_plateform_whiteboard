@@ -1,0 +1,117 @@
+import 'package:cross_platform_whiteboard/features/input_pad/presentation/controllers/input_pad_controller.dart';
+import 'package:cross_platform_whiteboard/features/session/data/services/realtime_session_service.dart';
+import 'package:cross_platform_whiteboard/features/session/domain/models/session_event_type.dart';
+import 'package:cross_platform_whiteboard/features/session/domain/models/session_message.dart';
+import 'package:flutter/gestures.dart';
+import 'package:flutter/widgets.dart' show Offset;
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  late _RecordingSessionService session;
+  late InputPadController controller;
+
+  setUp(() {
+    session = _RecordingSessionService();
+    controller = InputPadController(session);
+  });
+
+  tearDown(() {
+    controller.onClose();
+  });
+
+  test('move mode moves the pointer without holding the mouse button', () {
+    controller.setWriteMode(false);
+    controller.setPointerSensitivity(2);
+
+    controller.pointerDown(
+      const PointerDownEvent(
+        pointer: 1,
+        kind: PointerDeviceKind.touch,
+        position: Offset.zero,
+        localPosition: Offset.zero,
+      ),
+    );
+    controller.pointerMove(
+      const PointerMoveEvent(
+        pointer: 1,
+        kind: PointerDeviceKind.touch,
+        position: Offset(10, 5),
+        localPosition: Offset(10, 5),
+      ),
+    );
+    controller.pointerUp(
+      const PointerUpEvent(
+        pointer: 1,
+        kind: PointerDeviceKind.touch,
+        position: Offset(10, 5),
+        localPosition: Offset(10, 5),
+      ),
+    );
+
+    expect(
+      session.messages.map((SessionMessage message) => message.type),
+      <String>[SessionEventType.pointerMove],
+    );
+    expect(session.messages.single.payload['dx'], 20.0);
+    expect(session.messages.single.payload['dy'], 10.0);
+  });
+
+  test('write mode draws with a down, move, and up sequence', () {
+    controller.pointerDown(
+      const PointerDownEvent(
+        pointer: 1,
+        kind: PointerDeviceKind.touch,
+        position: Offset.zero,
+        localPosition: Offset.zero,
+      ),
+    );
+    controller.pointerMove(
+      const PointerMoveEvent(
+        pointer: 1,
+        kind: PointerDeviceKind.touch,
+        position: Offset(8, 3),
+        localPosition: Offset(8, 3),
+      ),
+    );
+    controller.pointerUp(
+      const PointerUpEvent(
+        pointer: 1,
+        kind: PointerDeviceKind.touch,
+        position: Offset(8, 3),
+        localPosition: Offset(8, 3),
+      ),
+    );
+
+    expect(
+      session.messages.map((SessionMessage message) => message.type),
+      <String>[
+        SessionEventType.pointerDown,
+        SessionEventType.pointerMove,
+        SessionEventType.pointerUp,
+      ],
+    );
+  });
+
+  test('sensitivity settings stay within supported ranges', () {
+    controller.setPointerSensitivity(9);
+    controller.setScrollSensitivity(0);
+
+    expect(controller.pointerSensitivity, 2.5);
+    expect(controller.scrollSensitivity, 1.0);
+  });
+}
+
+class _RecordingSessionService extends RealtimeSessionService {
+  final List<SessionMessage> messages = <SessionMessage>[];
+
+  @override
+  bool get isHost => true;
+
+  @override
+  String get clientId => 'test-client';
+
+  @override
+  void publish(SessionMessage message) {
+    messages.add(message);
+  }
+}
