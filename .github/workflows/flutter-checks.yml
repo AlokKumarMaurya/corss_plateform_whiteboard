@@ -26,3 +26,18 @@ jobs:
         run: flutter build web
       - name: Run unit tests
         run: flutter test
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Build Windows desktop
+        run: flutter build windows
