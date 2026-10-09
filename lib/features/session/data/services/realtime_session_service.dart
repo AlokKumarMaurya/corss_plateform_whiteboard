@@ -4,7 +4,6 @@ import 'dart:math';
 
 import 'package:cross_platform_whiteboard/core/constants/session_constants.dart';
 import 'package:cross_platform_whiteboard/features/session/data/services/session_host_factory.dart';
-import 'package:cross_platform_whiteboard/features/session/domain/models/session_event_type.dart';
 import 'package:cross_platform_whiteboard/features/session/domain/models/session_message.dart';
 import 'package:cross_platform_whiteboard/features/session/domain/models/session_status.dart';
 import 'package:cross_platform_whiteboard/features/session/domain/repositories/drawing_sync_gateway.dart';
@@ -94,13 +93,6 @@ class RealtimeSessionService extends GetxService implements DrawingSyncGateway {
         cancelOnError: true,
       );
       status.value = SessionStatus.connected;
-      publish(
-        SessionMessage(
-          senderId: clientId,
-          type: SessionEventType.requestSnapshot,
-          payload: const <String, dynamic>{},
-        ),
-      );
     } catch (error) {
       errorMessage.value = _friendlyError(error);
       status.value = SessionStatus.disconnected;
