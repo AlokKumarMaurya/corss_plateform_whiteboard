@@ -11,8 +11,6 @@ dependencies:
   flutter:
     sdk: flutter
   get: ^4.7.2
-  clean_util: ^0.1.0
-  web_socket_channel: ^3.0.3
 
 dev_dependencies:
   flutter_test:
