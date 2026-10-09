@@ -16,6 +16,13 @@ abstract final class AppStrings {
   static const String tabletModeHint =
       'Touch positions map to Windows. The pad edges snap to the mapped area edges. Zoom for precision, then move the area to reach desktop corners.';
   static const String tabletPrecision = 'Tablet precision';
+  static const String tabletMappingPreset = 'Mapping preset';
+  static const String tabletPresetAutoFit = 'Auto Fit';
+  static const String tabletPresetBalanced = 'Balanced';
+  static const String tabletPresetFineWriting = 'Fine Writing';
+  static const String tabletPresetCustom = 'Custom mapping';
+  static const String tabletPresetHint =
+      'Auto Fit covers the full desktop. Balanced and Fine Writing zoom into a smaller area.';
   static const String desktopAreaHorizontal = 'Desktop area · horizontal';
   static const String desktopAreaVertical = 'Desktop area · vertical';
   static const String tabletMappingReset = 'Reset mapping';
