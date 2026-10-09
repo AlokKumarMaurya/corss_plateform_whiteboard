@@ -176,20 +176,30 @@ class InputPadController extends GetxController {
     final double distance = _distance;
     final Offset? previousCenter = _gestureCenter;
     final double? previousDistance = _gestureDistance;
-    _gestureCenter = center;
-    _gestureDistance = distance;
 
     if (previousCenter == null || previousDistance == null || previousDistance <= 1) {
+      _gestureCenter = center;
+      _gestureDistance = distance;
       return;
     }
 
     final double distanceChange = distance - previousDistance;
-    final double distanceRatio = distanceChange.abs() / previousDistance;
-    if (distanceChange.abs() >= 1.0 || distanceRatio >= 0.005) {
+    if (distanceChange.abs() >= 2.5) {
+      // Keep a stable distance baseline so slow pinches accumulate instead
+      // of being mistaken for repeated tiny scrolls.
+      _gestureCenter = center;
+      _gestureDistance = distance;
       final int zoomDelta = (distanceChange * 30.0).round().clamp(-480, 480);
       if (zoomDelta != 0) {
         _send(SessionEventType.zoom, <String, dynamic>{'delta': zoomDelta});
       }
+      return;
+    }
+
+    _gestureCenter = center;
+    if (distanceChange.abs() > 0.5) {
+      // Finger spacing is changing, so wait for the pinch threshold rather
+      // than injecting accidental scroll while the user starts a zoom.
       return;
     }
 
