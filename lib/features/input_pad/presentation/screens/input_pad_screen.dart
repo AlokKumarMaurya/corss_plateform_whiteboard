@@ -50,40 +50,55 @@ class InputPadScreen extends GetView<InputPadController> {
                             ),
                           ),
                           Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(20),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: <Widget>[
-                                  Icon(
-                                    controller.isNavigating
-                                        ? Icons.open_with_rounded
-                                        : controller.writeMode
-                                            ? Icons.gesture_rounded
-                                            : Icons.ads_click_rounded,
+                            child: LayoutBuilder(
+                              builder: (
+                                BuildContext context,
+                                BoxConstraints constraints,
+                              ) {
+                                final IconData modeIcon = controller.isNavigating
+                                    ? Icons.open_with_rounded
+                                    : controller.writeMode
+                                        ? Icons.gesture_rounded
+                                        : Icons.ads_click_rounded;
+                                if (constraints.maxHeight < 120) {
+                                  return Icon(
+                                    modeIcon,
                                     color: const Color(0xFFCAD5EA),
-                                    size: 42,
+                                    size: 24,
+                                  );
+                                }
+                                return Padding(
+                                  padding: const EdgeInsets.all(20),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: <Widget>[
+                                      Icon(
+                                        modeIcon,
+                                        color: const Color(0xFFCAD5EA),
+                                        size: 42,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        controller.hint,
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          color: Color(0xFFE7ECF5),
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      const Text(
+                                        AppStrings.twoFingerHint,
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          color: Color(0xFF929DB1),
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    controller.hint,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      color: Color(0xFFE7ECF5),
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  const Text(
-                                    AppStrings.twoFingerHint,
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      color: Color(0xFF929DB1),
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                );
+                              },
                             ),
                           ),
                         ],
