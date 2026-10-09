@@ -66,7 +66,7 @@ class InputPadController extends GetxController {
       _singleMoved = false;
       _suppressSingleUntilAllUp = false;
       if (!_writeMode.value) {
-        _hint.value = 'Move mode: drag to move the cursor; tap to click.';
+        _hint.value = AppStrings.moveModeHint;
       } else if (_isStylus(event.kind)) {
         _pressLeftButton();
       } else {
@@ -115,7 +115,7 @@ class InputPadController extends GetxController {
         _suppressSingleUntilAllUp = true;
         _gestureCenter = _center;
         _gestureDistance = _distance;
-        _hint.value = 'Two-finger navigation';
+        _hint.value = AppStrings.twoFingerHint;
         return;
       }
       _updateNavigation();
@@ -161,7 +161,7 @@ class InputPadController extends GetxController {
       _gestureCenter = null;
       _gestureDistance = null;
       _hint.value = _writeMode.value
-          ? 'Write mode: touch and drag to draw in the active app.'
+          ? AppStrings.writeModeHint
           : 'Move mode: drag to move the cursor; tap to click.';
       return;
     }
