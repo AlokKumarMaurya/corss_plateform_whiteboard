@@ -23,6 +23,7 @@ class InputPadController extends GetxController {
   final RxDouble _tabletZoom = 1.0.obs;
   final RxDouble _tabletAreaX = 0.5.obs;
   final RxDouble _tabletAreaY = 0.5.obs;
+  final RxString _tabletPreset = 'auto_fit'.obs;
   static const double _edgeSnapFraction = 0.04;
   final RxBool _isNavigating = false.obs;
   final RxBool _writeMode = true.obs;
@@ -44,6 +45,7 @@ class InputPadController extends GetxController {
   double get tabletZoom => _tabletZoom.value;
   double get tabletAreaX => _tabletAreaX.value;
   double get tabletAreaY => _tabletAreaY.value;
+  String get tabletPreset => _tabletPreset.value;
   double get pointerSensitivity => _pointerSensitivity.value;
   double get scrollSensitivity => _scrollSensitivity.value;
   String get hint => _hint.value;
@@ -71,16 +73,41 @@ class InputPadController extends GetxController {
     _tabletMode.value = value;
   }
 
+  void applyTabletPreset(String preset) {
+    switch (preset) {
+      case 'auto_fit':
+        _tabletZoom.value = 1.0;
+        _tabletAreaX.value = 0.5;
+        _tabletAreaY.value = 0.5;
+        _tabletPreset.value = preset;
+      case 'balanced':
+        _tabletZoom.value = 2.0;
+        _tabletAreaX.value = 0.5;
+        _tabletAreaY.value = 0.5;
+        _tabletPreset.value = preset;
+      case 'fine_writing':
+        _tabletZoom.value = 3.0;
+        _tabletAreaX.value = 0.5;
+        _tabletAreaY.value = 0.5;
+        _tabletPreset.value = preset;
+      default:
+        return;
+    }
+  }
+
   void setTabletZoom(double value) {
     _tabletZoom.value = value.clamp(1.0, 4.0).toDouble();
+    _tabletPreset.value = 'custom';
   }
 
   void setTabletAreaX(double value) {
     _tabletAreaX.value = value.clamp(0.0, 1.0).toDouble();
+    _tabletPreset.value = 'custom';
   }
 
   void setTabletAreaY(double value) {
     _tabletAreaY.value = value.clamp(0.0, 1.0).toDouble();
+    _tabletPreset.value = 'custom';
   }
 
   void setPointerSensitivity(double value) {
