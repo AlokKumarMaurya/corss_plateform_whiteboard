@@ -1,28 +1,35 @@
 # Implementation Status
 
-## Foundation committed on `feature/whiteboard-foundation`
+## Product goal
 
-- Flutter package manifest and lints.
-- GetX app bootstrap, route table, and dependency binding.
-- Shared drawing point and stroke models.
-- In-memory drawing repository contract and implementation.
-- Local canvas using Flutter pointer events and `CustomPainter`.
-- Pen color, pen width, eraser, clear, undo, and redo controls.
-- Centralized `AppStrings` and reusable toolbar/canvas widgets.
-- Unit tests for normalized points and whiteboard controller operations.
-- GitHub Actions workflow for dependency resolution, static analysis, and unit tests.
+Turn an Android phone into a wireless stylus-enabled trackpad for Windows. The phone provides the comfortable physical writing surface; Windows forwards the input to the currently active application. A separate whiteboard UI is not required.
 
-## Not validated yet
+## Implemented on the current feature branch
 
-GitHub Actions successfully ran `flutter pub get`, `flutter analyze`, and `flutter test` on commit `4253d03663453fb5d4514ea1ff4a22b7fb083a82` (run: https://github.com/AlokKumarMaurya/corss_plateform_whiteboard/actions/runs/37955770348). No Windows desktop or physical Android device build has been performed yet.
+- Versioned JSON WebSocket session protocol with pointer and gesture event types.
+- Windows host bound to private IPv4 interfaces, protected by a random session token, with a one-client limit.
+- Android-specific input-pad screen with one-contact drawing/click behavior and two-contact scroll/pinch gesture handling.
+- Windows-specific companion screen for starting/stopping the host and displaying the IP/session code.
+- Native Windows MethodChannel backed by Win32 SendInput for relative mouse movement, left button down/up, vertical/horizontal wheel events, and Ctrl+wheel zoom.
+- Host-side mouse-button release event when a client disconnects.
+- CI runs Dart analysis/tests on Ubuntu and builds the Windows desktop app on Windows.
 
-The actual WebSocket host/client, QR pairing, network permissions, PNG export, local persistence, and browser companion flow remain future implementation work.
+## Not yet validated
 
-## Follow-up items
+The implementation has not yet been tested on a real Android phone connected to a Windows PC. CI can check Dart code and compile the Windows runner, but cannot validate handwriting feel, pointer speed, application-specific scroll/zoom behavior, or real Wi-Fi latency.
 
-- The requested `clean_util` package name does not resolve on pub.dev, verified by CI. Confirm the exact package URL if you intended a different package.
-- `DrawingPoint` and `DrawingStroke` use platform-neutral numeric fields suitable for future JSON serialization.
-- Improve live stroke rendering efficiency: avoid copying every point list on every pointer event for long strokes; keep a mutable transient point buffer and publish frame updates.
-- Validate eraser compositing on web and Windows and add a regression test for transparent erasing.
-- Stylus pressure is normalized using device-reported bounds; validate input on a physical Android stylus device.
-- Add UI widget tests and Windows/Android real-device testing.
+## Known limitations
+
+- The implementation uses relative mouse input. It is intended to behave like a trackpad, not map phone coordinates to a fixed desktop drawing area.
+- One-contact drawing is represented as a normal left-button drag. Stylus pressure and tilt are not transmitted.
+- Two-finger scrolling is sent as wheel input, and pinch is sent as Ctrl+wheel. The active app decides how to interpret these events.
+- The legacy drawing/whiteboard files remain in the repository but are no longer selected by the Android or Windows app routes.
+- The plain WebSocket connection is intended only for trusted private LAN use. Do not expose it to public networks.
+
+## Next steps
+
+1. Run latest CI and fix any analysis/test/Windows native build errors.
+2. Validate drawing, click, scroll, and pinch behavior in Paint on real hardware.
+3. Tune pointer/scroll speed and gesture arbitration based on those results.
+4. Add stronger event validation/rate limiting, QR pairing, and reconnect handling.
+5. Evaluate Windows Pointer Injection if genuine multi-touch or pressure-sensitive stylus input becomes necessary.

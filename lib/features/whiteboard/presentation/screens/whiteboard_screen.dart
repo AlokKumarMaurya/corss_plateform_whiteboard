@@ -3,6 +3,7 @@ import 'package:cross_platform_whiteboard/core/strings/app_strings.dart';
 import 'package:cross_platform_whiteboard/features/drawing/domain/models/drawing_tool.dart';
 import 'package:cross_platform_whiteboard/features/drawing/presentation/widgets/drawing_canvas.dart';
 import 'package:cross_platform_whiteboard/features/whiteboard/presentation/controllers/whiteboard_controller.dart';
+import 'package:cross_platform_whiteboard/features/session/presentation/widgets/session_panel.dart';
 import 'package:cross_platform_whiteboard/shared/widgets/canvas_surface.dart';
 import 'package:cross_platform_whiteboard/shared/widgets/section_label.dart';
 import 'package:cross_platform_whiteboard/shared/widgets/tool_button.dart';
@@ -37,7 +38,9 @@ class WhiteboardScreen extends GetView<WhiteboardController> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               const _PageHeading(),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
+              const SessionPanel(),
+              const SizedBox(height: 14),
               const _Toolbar(),
               const SizedBox(height: 14),
               Expanded(
@@ -100,21 +103,7 @@ class _PageHeading extends StatelessWidget {
             ],
           ),
         ),
-        FilledButton.tonalIcon(
-          onPressed: _showPairingPlaceholder,
-          icon: const Icon(Icons.phonelink_ring_rounded),
-          label: const Text(AppStrings.actionConnectPhone),
-        ),
       ],
-    );
-  }
-
-  void _showPairingPlaceholder() {
-    Get.snackbar(
-      AppStrings.titlePhoneConnection,
-      AppStrings.actionComingSoon,
-      snackPosition: SnackPosition.BOTTOM,
-      margin: const EdgeInsets.all(16),
     );
   }
 }

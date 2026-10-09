@@ -11,6 +11,21 @@ void main() {
       expect(point.timestampMicros, 42);
     });
 
+    test('serializes and validates normalized points', () {
+      const DrawingPoint point = DrawingPoint(
+        x: 0.25,
+        y: 0.75,
+        pressure: 0.4,
+        timestampMicros: 123,
+      );
+      expect(DrawingPoint.fromJson(point.toJson()).x, 0.25);
+      expect(DrawingPoint.fromJson(point.toJson()).pressure, 0.4);
+      expect(
+        () => DrawingPoint.fromJson(<String, dynamic>{'x': 1.5, 'y': 0.5}),
+        throwsFormatException,
+      );
+    });
+
     test('copyWith only replaces provided values', () {
       const DrawingPoint point = DrawingPoint(x: 0.2, y: 0.7);
       final DrawingPoint copied = point.copyWith(x: 0.4);
