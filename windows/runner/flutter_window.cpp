@@ -1,7 +1,6 @@
 #include "flutter_window.h"
 
 #include <algorithm>
-#include <cmath>
 #include <cstdint>
 #include <optional>
 #include <string>
@@ -34,7 +33,7 @@ void SendMouseInput(DWORD flags, LONG dx = 0, LONG dy = 0,
   input.mi.dy = dy;
   input.mi.mouseData = mouse_data;
   input.mi.dwFlags = flags;
-  SendInput(1, &input, sizeof(INPUT));
+  SendInput(1, &input, static_cast<int>(sizeof(INPUT)));
 }
 
 void SendControlKey(bool key_up) {
@@ -91,8 +90,8 @@ bool FlutterWindow::OnCreate() {
               std::clamp(ReadNumber(arguments, "dx") * 8.0, -1200.0, 1200.0));
           const LONG dy = static_cast<LONG>(
               std::clamp(ReadNumber(arguments, "dy") * 8.0, -1200.0, 1200.0));
-          if (dy != 0) SendMouseInput(MOUSEEVENTF_WHEEL, 0, 0, dy);
-          if (dx != 0) SendMouseInput(MOUSEEVENTF_HWHEEL, 0, 0, dx);
+          if (dy != 0) SendMouseInput(MOUSEEVENTF_WHEEL, 0, 0, static_cast<DWORD>(dy));
+          if (dx != 0) SendMouseInput(MOUSEEVENTF_HWHEEL, 0, 0, static_cast<DWORD>(dx));
         } else if (call.method_name() == "zoom") {
           const LONG delta = static_cast<LONG>(
               std::clamp(ReadNumber(arguments, "delta"), -1200.0, 1200.0));
