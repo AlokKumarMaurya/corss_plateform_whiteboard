@@ -14,7 +14,7 @@
 
 ## Not validated yet
 
-GitHub Actions is configured to run `flutter pub get`, `flutter analyze`, and `flutter test`. The current workflow is being used to validate and correct the initial implementation; check the linked Actions run for the latest result. No Windows or physical Android device build has been performed yet.
+GitHub Actions successfully ran `flutter pub get`, `flutter analyze`, and `flutter test` on commit `c89c8cffcefdeb9ffae36e19e02b8a1cf9c575d3` (run: https://github.com/AlokKumarMaurya/corss_plateform_whiteboard/actions/runs/37955525865). No Windows desktop or physical Android device build has been performed yet.
 
 The actual WebSocket host/client, QR pairing, network permissions, PNG export, local persistence, and browser companion flow remain future implementation work.
 
