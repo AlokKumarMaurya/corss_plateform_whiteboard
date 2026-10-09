@@ -144,7 +144,6 @@ class _IoSessionHost implements SessionHost {
       }
       if (source.length > SessionConstants.maximumMessageBytes) {
         socket.close(WebSocketStatus.messageTooBig, 'Message too large');
-        _clients.remove(socket);
         return;
       }
       final SessionMessage message = SessionMessage.decode(source);
@@ -152,7 +151,6 @@ class _IoSessionHost implements SessionHost {
       broadcast(message);
     } on FormatException {
       socket.close(WebSocketStatus.protocolError, 'Invalid session message');
-      _clients.remove(socket);
     }
   }
 
