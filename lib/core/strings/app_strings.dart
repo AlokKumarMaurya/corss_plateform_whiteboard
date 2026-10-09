@@ -8,7 +8,7 @@ abstract final class AppStrings {
   static const String pointerSpeed = 'Pointer speed';
   static const String scrollSpeed = 'Scroll speed';
   static const String inputSettings = 'Input settings';
-  static const String writeModeHint = 'Drag to write in the active Windows app.';
+  static const String writeModeHint = 'Drag to write. Hover a supported stylus to reposition without drawing.';
   static const String moveModeHint = 'Drag to move the cursor; tap to click.';
   static const String twoFingerHint = 'Two fingers scroll or pinch to zoom.';
   static const String initialInputHint =

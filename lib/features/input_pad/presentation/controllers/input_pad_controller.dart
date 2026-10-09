@@ -56,7 +56,19 @@ class InputPadController extends GetxController {
   }
 
   void setScrollSensitivity(double value) {
-    _scrollSensitivity.value = value.clamp(1.0, 8.0).toDouble();
+    _scrollSensitivity.value = value.clamp(1.0, 14.0).toDouble();
+  }
+
+  /// Moves the remote pointer while a hover-capable stylus is not touching
+  /// the phone. This lets users reposition between separate writing strokes.
+  void pointerHover(PointerHoverEvent event) {
+    if (_contacts.isNotEmpty || !_isStylus(event.kind)) return;
+    final Offset delta = event.localDelta;
+    if (delta.distanceSquared == 0) return;
+    _send(SessionEventType.pointerMove, <String, dynamic>{
+      'dx': delta.dx * _pointerSensitivity.value,
+      'dy': delta.dy * _pointerSensitivity.value,
+    });
   }
 
   void pointerDown(PointerDownEvent event) {

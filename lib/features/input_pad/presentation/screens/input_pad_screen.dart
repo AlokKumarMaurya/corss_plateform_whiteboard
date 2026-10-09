@@ -1,5 +1,7 @@
 import 'package:cross_platform_whiteboard/core/strings/app_strings.dart';
 import 'package:cross_platform_whiteboard/features/input_pad/presentation/controllers/input_pad_controller.dart';
+import 'package:cross_platform_whiteboard/features/session/data/services/realtime_session_service.dart';
+import 'package:cross_platform_whiteboard/features/session/domain/models/session_status.dart';
 import 'package:cross_platform_whiteboard/features/session/presentation/widgets/session_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -9,26 +11,43 @@ class InputPadScreen extends GetView<InputPadController> {
 
   @override
   Widget build(BuildContext context) {
+    final RealtimeSessionService session = Get.find<RealtimeSessionService>();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(AppStrings.appName),
         centerTitle: true,
+        actions: <Widget>[
+          Obx(() {
+            if (session.status.value != SessionStatus.connected) {
+              return const SizedBox.shrink();
+            }
+            return TextButton.icon(
+              onPressed: session.disconnect,
+              icon: const Icon(Icons.link_off_rounded),
+              label: const Text(AppStrings.actionDisconnectSession),
+            );
+          }),
+          const SizedBox(width: 8),
+        ],
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              const SessionPanel(),
-              const SizedBox(height: 8),
               _InputPadControls(controller: controller),
-              const SizedBox(height: 8),
+              Obx(
+                () => session.status.value == SessionStatus.connected
+                    ? const SizedBox.shrink()
+                    : const SessionPanel(),
+              ),
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
                     color: const Color(0xFF171B24),
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: const Color(0xFF303746)),
                   ),
                   clipBehavior: Clip.antiAlias,
@@ -36,82 +55,20 @@ class InputPadScreen extends GetView<InputPadController> {
                     behavior: HitTestBehavior.opaque,
                     onPointerDown: controller.pointerDown,
                     onPointerMove: controller.pointerMove,
+                    onPointerHover: controller.pointerHover,
                     onPointerUp: controller.pointerUp,
                     onPointerCancel: controller.pointerCancel,
                     child: Obx(
-                      () => Stack(
-                        children: <Widget>[
-                          Positioned.fill(
-                            child: CustomPaint(
-                              painter: _PadGridPainter(
-                                navigating: controller.isNavigating,
-                                writeMode: controller.writeMode,
-                              ),
-                            ),
-                          ),
-                          Center(
-                            child: LayoutBuilder(
-                              builder: (
-                                BuildContext context,
-                                BoxConstraints constraints,
-                              ) {
-                                final IconData modeIcon = controller.isNavigating
-                                    ? Icons.open_with_rounded
-                                    : controller.writeMode
-                                        ? Icons.gesture_rounded
-                                        : Icons.ads_click_rounded;
-                                if (constraints.maxHeight < 120) {
-                                  return Icon(
-                                    modeIcon,
-                                    color: const Color(0xFFCAD5EA),
-                                    size: 24,
-                                  );
-                                }
-                                return Padding(
-                                  padding: const EdgeInsets.all(20),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: <Widget>[
-                                      Icon(
-                                        modeIcon,
-                                        color: const Color(0xFFCAD5EA),
-                                        size: 42,
-                                      ),
-                                      const SizedBox(height: 12),
-                                      Text(
-                                        controller.hint,
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(
-                                          color: Color(0xFFE7ECF5),
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      const Text(
-                                        AppStrings.twoFingerHint,
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          color: Color(0xFF929DB1),
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
+                      () => CustomPaint(
+                        painter: _PadGridPainter(
+                          navigating: controller.isNavigating,
+                          writeMode: controller.writeMode,
+                        ),
+                        child: const SizedBox.expand(),
                       ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Keep this app open while the Windows companion is connected.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: Color(0xFF737D8F)),
               ),
             ],
           ),
@@ -128,75 +85,88 @@ class _InputPadControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Obx(
-        () => Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-              child: Row(
-                children: <Widget>[
-                  Expanded(
-                    child: Text(
-                      AppStrings.inputMode,
-                      style: Theme.of(context).textTheme.titleSmall,
-                    ),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        children: <Widget>[
+          Expanded(
+            child: Obx(
+              () => SegmentedButton<bool>(
+                segments: const <ButtonSegment<bool>>[
+                  ButtonSegment<bool>(
+                    value: true,
+                    icon: Icon(Icons.draw_rounded),
+                    label: Text(AppStrings.modeWrite),
                   ),
-                  SegmentedButton<bool>(
-                    segments: const <ButtonSegment<bool>>[
-                      ButtonSegment<bool>(
-                        value: true,
-                        icon: Icon(Icons.draw_rounded),
-                        label: Text(AppStrings.modeWrite),
-                      ),
-                      ButtonSegment<bool>(
-                        value: false,
-                        icon: Icon(Icons.mouse_rounded),
-                        label: Text(AppStrings.modeMove),
-                      ),
-                    ],
-                    selected: <bool>{controller.writeMode},
-                    showSelectedIcon: false,
-                    onSelectionChanged: (Set<bool> selection) {
-                      controller.setWriteMode(selection.first);
-                    },
+                  ButtonSegment<bool>(
+                    value: false,
+                    icon: Icon(Icons.mouse_rounded),
+                    label: Text(AppStrings.modeMove),
+                  ),
+                ],
+                selected: <bool>{controller.writeMode},
+                showSelectedIcon: false,
+                onSelectionChanged: (Set<bool> selection) {
+                  controller.setWriteMode(selection.first);
+                },
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          IconButton.filledTonal(
+            tooltip: AppStrings.inputSettings,
+            onPressed: () => _showInputSettings(context, controller),
+            icon: const Icon(Icons.tune_rounded),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showInputSettings(
+    BuildContext context,
+    InputPadController controller,
+  ) {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+            child: Obx(
+              () => Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Text(
+                    AppStrings.inputSettings,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 16),
+                  _SensitivitySlider(
+                    label: AppStrings.pointerSpeed,
+                    value: controller.pointerSensitivity,
+                    min: 0.5,
+                    max: 2.5,
+                    divisions: 8,
+                    onChanged: controller.setPointerSensitivity,
+                  ),
+                  _SensitivitySlider(
+                    label: AppStrings.scrollSpeed,
+                    value: controller.scrollSensitivity,
+                    min: 1,
+                    max: 14,
+                    divisions: 13,
+                    onChanged: controller.setScrollSensitivity,
                   ),
                 ],
               ),
             ),
-            ExpansionTile(
-              dense: true,
-              title: const Text(AppStrings.inputSettings),
-              subtitle: Text(
-                '${AppStrings.pointerSpeed}: '
-                '${controller.pointerSensitivity.toStringAsFixed(1)}×  ·  '
-                '${AppStrings.scrollSpeed}: '
-                '${controller.scrollSensitivity.toStringAsFixed(1)}×',
-              ),
-              childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-              children: <Widget>[
-                _SensitivitySlider(
-                  label: AppStrings.pointerSpeed,
-                  value: controller.pointerSensitivity,
-                  min: 0.5,
-                  max: 2.5,
-                  divisions: 8,
-                  onChanged: controller.setPointerSensitivity,
-                ),
-                _SensitivitySlider(
-                  label: AppStrings.scrollSpeed,
-                  value: controller.scrollSensitivity,
-                  min: 1,
-                  max: 8,
-                  divisions: 7,
-                  onChanged: controller.setScrollSensitivity,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

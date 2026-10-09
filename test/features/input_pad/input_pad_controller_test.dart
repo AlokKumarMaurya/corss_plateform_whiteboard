@@ -85,12 +85,30 @@ void main() {
     );
   });
 
+  test('stylus hover repositions the pointer without drawing', () {
+    controller.pointerHover(
+      const PointerHoverEvent(
+        pointer: 1,
+        kind: PointerDeviceKind.stylus,
+        position: Offset(4, 6),
+        delta: Offset(4, 6),
+      ),
+    );
+
+    expect(
+      session.messages.map((SessionMessage message) => message.type),
+      <String>[SessionEventType.pointerMove],
+    );
+    expect(session.messages.single.payload['dx'], 4.0);
+    expect(session.messages.single.payload['dy'], 6.0);
+  });
+
   test('sensitivity settings stay within supported ranges', () {
     controller.setPointerSensitivity(9);
-    controller.setScrollSensitivity(0);
+    controller.setScrollSensitivity(20);
 
     expect(controller.pointerSensitivity, 2.5);
-    expect(controller.scrollSensitivity, 1.0);
+    expect(controller.scrollSensitivity, 14.0);
   });
 }
 
