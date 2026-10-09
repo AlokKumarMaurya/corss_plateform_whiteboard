@@ -161,7 +161,7 @@ class _InputPadControls extends StatelessWidget {
                     segments: const <ButtonSegment<bool>>[
                       ButtonSegment<bool>(
                         value: false,
-                        icon: Icon(Icons.touchpad_mouse_rounded),
+                        icon: Icon(Icons.mouse_rounded),
                         label: Text(AppStrings.trackpadMode),
                       ),
                       ButtonSegment<bool>(
