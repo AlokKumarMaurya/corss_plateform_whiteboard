@@ -8,6 +8,13 @@ abstract final class AppStrings {
   static const String pointerSpeed = 'Pointer speed';
   static const String scrollSpeed = 'Scroll speed';
   static const String inputSettings = 'Input settings';
+  static const String pointerMappingMode = 'Pointer mapping';
+  static const String trackpadMode = 'Trackpad';
+  static const String tabletMode = 'Tablet';
+  static const String trackpadModeHint =
+      'Relative movement. Use Move mode to reposition between strokes.';
+  static const String tabletModeHint =
+      'Touch positions map to the Windows desktop for accurate separate strokes.';
   static const String writeModeHint = 'Drag to write. Hover a supported stylus to reposition without drawing.';
   static const String moveModeHint = 'Drag to move the cursor; tap to click.';
   static const String twoFingerHint = 'Two fingers scroll or pinch to zoom.';
