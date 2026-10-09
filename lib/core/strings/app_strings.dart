@@ -14,7 +14,7 @@ abstract final class AppStrings {
   static const String trackpadModeHint =
       'Relative movement. Use Move mode to reposition between strokes.';
   static const String tabletModeHint =
-      'Touch positions map to Windows. The pad edges snap to desktop edges; zoom for precision and move the mapped area to reach corners.';
+      'Touch positions map to Windows. The pad edges snap to the mapped area edges. Zoom for precision, then move the area to reach desktop corners.';
   static const String tabletPrecision = 'Tablet precision';
   static const String desktopAreaHorizontal = 'Desktop area · horizontal';
   static const String desktopAreaVertical = 'Desktop area · vertical';
