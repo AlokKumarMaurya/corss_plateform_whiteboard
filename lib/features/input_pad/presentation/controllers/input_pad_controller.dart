@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cross_platform_whiteboard/core/strings/app_strings.dart';
 import 'package:cross_platform_whiteboard/features/session/data/services/realtime_session_service.dart';
 import 'package:cross_platform_whiteboard/features/session/domain/models/session_event_type.dart';
 import 'package:cross_platform_whiteboard/features/session/domain/models/session_message.dart';
@@ -21,7 +22,7 @@ class InputPadController extends GetxController {
   final RxDouble _pointerSensitivity = 1.0.obs;
   final RxDouble _scrollSensitivity = 4.0.obs;
   final RxString _hint =
-      'Write with one finger, or switch to Move to control the cursor.'.obs;
+      AppStrings.initialInputHint.obs;
 
   Timer? _pendingFingerPress;
   Offset? _gestureCenter;
@@ -46,8 +47,8 @@ class InputPadController extends GetxController {
       _suppressSingleUntilAllUp = true;
     }
     _hint.value = value
-        ? 'Write mode: touch and drag to draw in the active app.'
-        : 'Move mode: drag to move the cursor; tap to click.';
+        ? AppStrings.writeModeHint
+        : AppStrings.moveModeHint;
   }
 
   void setPointerSensitivity(double value) {
@@ -94,7 +95,7 @@ class InputPadController extends GetxController {
       _suppressSingleUntilAllUp = true;
       _gestureCenter = _center;
       _gestureDistance = _distance;
-      _hint.value = 'Two-finger navigation';
+      _hint.value = AppStrings.twoFingerHint;
     }
   }
 
