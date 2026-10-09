@@ -8,9 +8,28 @@ abstract final class AppStrings {
   static const String pointerSpeed = 'Pointer speed';
   static const String scrollSpeed = 'Scroll speed';
   static const String inputSettings = 'Input settings';
+  static const String pointerMappingMode = 'Pointer mapping';
+  static const String trackpadMode = 'Trackpad';
+  static const String tabletMode = 'Tablet';
+  static const String trackpadModeHint =
+      'Relative movement. Use Move mode to reposition between strokes.';
+  static const String tabletModeHint =
+      'Touch positions map to Windows. The pad edges snap to the mapped area edges. Zoom for precision, then move the area to reach desktop corners.';
+  static const String tabletPrecision = 'Tablet precision';
+  static const String tabletMappingPreset = 'Mapping preset';
+  static const String tabletPresetAutoFit = 'Auto Fit';
+  static const String tabletPresetBalanced = 'Balanced';
+  static const String tabletPresetFineWriting = 'Fine Writing';
+  static const String tabletPresetCustom = 'Custom mapping';
+  static const String tabletPresetHint =
+      'Auto Fit covers the full desktop. Balanced and Fine Writing zoom into a smaller area.';
+  static const String desktopAreaHorizontal = 'Desktop area · horizontal';
+  static const String desktopAreaVertical = 'Desktop area · vertical';
+  static const String tabletMappingReset = 'Reset mapping';
   static const String writeModeHint = 'Drag to write. Hover a supported stylus to reposition without drawing.';
   static const String moveModeHint = 'Drag to move the cursor; tap to click.';
-  static const String twoFingerHint = 'Two fingers scroll or pinch to zoom.';
+  static const String twoFingerZoomHint = 'Two fingers: pinch to zoom in or out.';
+  static const String threeFingerScrollHint = 'Three fingers: swipe up or down to scroll.';
   static const String initialInputHint =
       'Write with one finger, or switch to Move to control the cursor.';
   static const String whiteboardTitle = 'Windows companion';

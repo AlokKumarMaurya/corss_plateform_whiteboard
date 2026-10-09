@@ -9,6 +9,7 @@ abstract final class SessionEventType {
   static const String boardSnapshot = 'board_snapshot';
 
   static const String pointerMove = 'input_pointer_move';
+  static const String pointerMoveAbsolute = 'input_pointer_move_absolute';
   static const String pointerDown = 'input_pointer_down';
   static const String pointerUp = 'input_pointer_up';
   static const String scroll = 'input_scroll';
@@ -24,6 +25,7 @@ abstract final class SessionEventType {
     requestSnapshot,
     boardSnapshot,
     pointerMove,
+    pointerMoveAbsolute,
     pointerDown,
     pointerUp,
     scroll,

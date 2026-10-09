@@ -51,22 +51,29 @@ class InputPadScreen extends GetView<InputPadController> {
                     border: Border.all(color: const Color(0xFF303746)),
                   ),
                   clipBehavior: Clip.antiAlias,
-                  child: Listener(
-                    behavior: HitTestBehavior.opaque,
-                    onPointerDown: controller.pointerDown,
-                    onPointerMove: controller.pointerMove,
-                    onPointerHover: controller.pointerHover,
-                    onPointerUp: controller.pointerUp,
-                    onPointerCancel: controller.pointerCancel,
-                    child: Obx(
-                      () => CustomPaint(
-                        painter: _PadGridPainter(
-                          navigating: controller.isNavigating,
-                          writeMode: controller.writeMode,
+                  child: LayoutBuilder(
+                    builder: (BuildContext context, BoxConstraints constraints) {
+                      controller.setPadSize(
+                        Size(constraints.maxWidth, constraints.maxHeight),
+                      );
+                      return Listener(
+                        behavior: HitTestBehavior.opaque,
+                        onPointerDown: controller.pointerDown,
+                        onPointerMove: controller.pointerMove,
+                        onPointerHover: controller.pointerHover,
+                        onPointerUp: controller.pointerUp,
+                        onPointerCancel: controller.pointerCancel,
+                        child: Obx(
+                          () => CustomPaint(
+                            painter: _PadGridPainter(
+                              navigating: controller.isNavigating,
+                              writeMode: controller.writeMode,
+                            ),
+                            child: const SizedBox.expand(),
+                          ),
                         ),
-                        child: const SizedBox.expand(),
-                      ),
-                    ),
+                      );
+                    },
                   ),
                 ),
               ),
@@ -133,17 +140,125 @@ class _InputPadControls extends StatelessWidget {
       isScrollControlled: true,
       builder: (BuildContext context) {
         return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
-            child: Obx(
-              () => Column(
-                mainAxisSize: MainAxisSize.min,
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+              child: Obx(
+                () => Column(
+                  mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
                   Text(
                     AppStrings.inputSettings,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
+                  const SizedBox(height: 16),
+                  Text(
+                    AppStrings.pointerMappingMode,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  SegmentedButton<bool>(
+                    segments: const <ButtonSegment<bool>>[
+                      ButtonSegment<bool>(
+                        value: false,
+                        icon: Icon(Icons.mouse_rounded),
+                        label: Text(AppStrings.trackpadMode),
+                      ),
+                      ButtonSegment<bool>(
+                        value: true,
+                        icon: Icon(Icons.tablet_mac_rounded),
+                        label: Text(AppStrings.tabletMode),
+                      ),
+                    ],
+                    selected: <bool>{controller.tabletMode},
+                    showSelectedIcon: false,
+                    onSelectionChanged: (Set<bool> selection) {
+                      controller.setTabletMode(selection.first);
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    controller.tabletMode
+                        ? AppStrings.tabletModeHint
+                        : AppStrings.trackpadModeHint,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  if (controller.tabletMode) ...<Widget>[
+                    const SizedBox(height: 12),
+                    Text(
+                      AppStrings.tabletMappingPreset,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    SegmentedButton<String>(
+                      segments: const <ButtonSegment<String>>[
+                        ButtonSegment<String>(
+                          value: 'auto_fit',
+                          icon: Icon(Icons.fit_screen_rounded),
+                          label: Text(AppStrings.tabletPresetAutoFit),
+                        ),
+                        ButtonSegment<String>(
+                          value: 'balanced',
+                          icon: Icon(Icons.center_focus_weak_rounded),
+                          label: Text(AppStrings.tabletPresetBalanced),
+                        ),
+                        ButtonSegment<String>(
+                          value: 'fine_writing',
+                          icon: Icon(Icons.edit_rounded),
+                          label: Text(AppStrings.tabletPresetFineWriting),
+                        ),
+                      ],
+                      selected: <String>{
+                        if (controller.tabletPreset != 'custom')
+                          controller.tabletPreset,
+                      },
+                      emptySelectionAllowed: true,
+                      showSelectedIcon: false,
+                      onSelectionChanged: (Set<String> selection) {
+                        if (selection.isNotEmpty) {
+                          controller.applyTabletPreset(selection.first);
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      AppStrings.tabletPresetHint,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 12),
+                    _SensitivitySlider(
+                      label: AppStrings.tabletPrecision,
+                      value: controller.tabletZoom,
+                      min: 1,
+                      max: 4,
+                      divisions: 6,
+                      onChanged: controller.setTabletZoom,
+                    ),
+                    if (controller.tabletZoom > 1) ...<Widget>[
+                      _MappingPositionSlider(
+                        label: AppStrings.desktopAreaHorizontal,
+                        value: controller.tabletAreaX * 100,
+                        onChanged: (double value) =>
+                            controller.setTabletAreaX(value / 100),
+                      ),
+                      _MappingPositionSlider(
+                        label: AppStrings.desktopAreaVertical,
+                        value: controller.tabletAreaY * 100,
+                        onChanged: (double value) =>
+                            controller.setTabletAreaY(value / 100),
+                      ),
+                    ],
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton.icon(
+                        onPressed: () =>
+                            controller.applyTabletPreset('auto_fit'),
+                        icon: const Icon(Icons.center_focus_strong_rounded),
+                        label: const Text(AppStrings.tabletMappingReset),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 16),
                   _SensitivitySlider(
                     label: AppStrings.pointerSpeed,
@@ -161,7 +276,8 @@ class _InputPadControls extends StatelessWidget {
                     divisions: 13,
                     onChanged: controller.setScrollSensitivity,
                   ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -207,6 +323,45 @@ class _SensitivitySlider extends StatelessWidget {
           width: 38,
           child: Text(
             '${value.toStringAsFixed(1)}×',
+            textAlign: TextAlign.end,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MappingPositionSlider extends StatelessWidget {
+  const _MappingPositionSlider({
+    required this.label,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final String label;
+  final double value;
+  final ValueChanged<double> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: <Widget>[
+        SizedBox(width: 104, child: Text(label)),
+        Expanded(
+          child: Slider(
+            value: value.clamp(0.0, 100.0).toDouble(),
+            min: 0,
+            max: 100,
+            divisions: 20,
+            label: '${value.round()}%',
+            onChanged: onChanged,
+          ),
+        ),
+        SizedBox(
+          width: 38,
+          child: Text(
+            '${value.round()}%',
             textAlign: TextAlign.end,
             style: Theme.of(context).textTheme.bodySmall,
           ),

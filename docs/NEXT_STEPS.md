@@ -11,7 +11,8 @@ The Android phone is an input device for the Windows computer, not a second whit
 - Android input pad with one-finger writing, tap-to-click, and two-finger scroll/pinch gestures.
 - Host-side release of the mouse button when the client disconnects.
 - **Input controls:** compact Write/Move toolbar, adjustable pointer and scroll sensitivity (scroll up to 14×), and app-bar disconnect action while connected.
-- **Stylus writing:** hover-capable styluses can reposition the pointer between separate strokes without drawing; touch-only devices can switch to Move mode to reposition.
+- **Pointer mapping:** Trackpad mode retains relative cursor movement; Tablet mode maps touch positions to the Windows desktop with edge snapping, adjustable precision zoom, and a movable mapped desktop area.
+- **Stylus writing:** hover-capable styluses can reposition the pointer between separate strokes without drawing.
 - GetX bindings and tests/CI for Dart analysis, tests, and Windows compilation.
 
 ## Current validation
@@ -25,7 +26,10 @@ The base connection and drawing flow has been reported as working on real device
 - Add reconnection UX, connection timeout, session expiry, and a visible disconnect state.
 - Add input payload validation and event-rate limiting.
 - Persist user preferences for pointer and scroll sensitivity between app launches.
-- Verify stylus hover repositioning on supported Android stylus hardware; document Move-mode repositioning for touch-only devices.
+- Validate Tablet mode edge snapping and adjustable mapping zoom/area with multi-stroke letters (T, R, P) on a real phone/Windows setup, including multi-monitor desktops.
+- Validate Tablet mapping presets (Auto Fit, Balanced, Fine Writing) on different phone pad sizes and Windows display configurations; verify manual adjustments switch to Custom mapping.
+- Validate gesture separation on a physical phone: exactly two fingers should pinch-to-zoom only (no scroll when translating both together); three fingers should scroll vertically only (no zoom), including transitions where a finger is added or lifted.
+- Verify stylus hover repositioning on supported Android stylus hardware.
 
 ### Windows input fidelity
 - Evaluate Windows Pointer Injection for genuine touch contacts and pressure/tilt-aware stylus input. Current SendInput emits mouse/wheel events.

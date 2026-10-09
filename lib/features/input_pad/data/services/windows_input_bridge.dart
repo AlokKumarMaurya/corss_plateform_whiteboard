@@ -34,6 +34,15 @@ class WindowsInputBridge {
     final Map<String, dynamic> payload = message.payload;
     try {
       switch (message.type) {
+        case SessionEventType.pointerMoveAbsolute:
+          await _channel.invokeMethod<void>(
+            'moveAbsolute',
+            <String, dynamic>{
+              'x': _number(payload['x']),
+              'y': _number(payload['y']),
+            },
+          );
+          break;
         case SessionEventType.pointerMove:
           await _channel.invokeMethod<void>('moveRelative', <String, dynamic>{
             'dx': _number(payload['dx']),
