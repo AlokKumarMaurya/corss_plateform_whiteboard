@@ -4,59 +4,40 @@
 
 The Android phone is an input device for the Windows computer, not a second whiteboard. The user can open any drawing or teaching application on Windows (Paint, PowerPoint, OneNote, a browser whiteboard, etc.) and use the phone as a comfortable writing surface.
 
-## Interaction contract
+## Implemented
 
-- **One finger / stylus:** left mouse button is held while moving the pointer, so the foreground app receives a normal mouse drag/drawing gesture.
-- **Tap:** click.
-- **Two-finger drag:** send vertical/horizontal wheel input for scrolling or panning.
-- **Pinch:** send Ctrl+wheel input for zoom.
-- **Gesture arbitration:** a short delay lets a second finger claim navigation before a finger press begins, preventing most accidental dots. Navigation must always release the remote left button.
-- **Disconnect safety:** host-side connection close sends a mouse-button release so a dropped phone cannot leave a drag active.
+- Versioned JSON session protocol and private-LAN WebSocket connection.
+- Windows companion with native Win32 mouse, button, wheel, and Ctrl+wheel input.
+- Android input pad with one-finger writing, tap-to-click, and two-finger scroll/pinch gestures.
+- Host-side release of the mouse button when the client disconnects.
+- **Input controls:** explicit Write and Move modes plus adjustable pointer and scroll sensitivity.
+- GetX bindings and tests/CI for Dart analysis, tests, and Windows compilation.
 
-## Implemented in this slice
+## Current validation
 
-- Versioned session messages now include pointer move/down/up, scroll, and zoom events.
-- Android uses a dedicated input surface instead of the whiteboard screen.
-- Windows uses a companion connection screen and hosts a single authenticated input client on private IPv4 interfaces.
-- Windows runner exposes a native MethodChannel that maps input events to Win32 SendInput.
-- Two-finger gesture recognition emits wheel/pinch input; the Windows bridge turns pinch into Ctrl+wheel.
-- The Windows host releases the left mouse button when a client disconnects.
-- Unit coverage was expanded for the input event protocol and the stale counter-widget test was replaced with an app smoke test.
-
-## Immediate validation
-
-1. Run flutter pub get, flutter analyze, and flutter test.
-2. Run flutter build windows on Windows to compile the native MethodChannel and Win32 input code.
-3. Run the companion on Windows and connect an Android phone on the same private Wi-Fi.
-4. Open Paint, make it the foreground application, and test drawing, taps, two-finger scrolling, and pinch zoom.
-5. Repeat in PowerPoint, OneNote, and a browser-based whiteboard; note application-specific differences.
-6. Disconnect while a stroke is active and verify the mouse button is released.
-7. Test touch-only and stylus input separately on a real Android device.
+The base connection and drawing flow has been reported as working on real devices. This controls milestone must pass CI and then be checked on the same phone/PC setup to verify that Move mode never draws, Write mode continues to draw, and sensitivity controls have a predictable effect.
 
 ## Next implementation phases
 
-### Reliability and usability
-- Tune touchpad pointer acceleration/sensitivity and scroll speed.
-- Add a dedicated way to move the pointer without drawing, while retaining the simple one-finger drawing workflow.
-- Improve gesture arbitration to eliminate any accidental click when a second finger arrives.
-- Add rate limiting, input payload validation, connection timeout, session expiry, and reconnection.
-- Add QR pairing and a copy/paste-friendly short connection code.
-- Show connection loss and host status clearly; make host shutdown release all active input states.
+### Reliability and pairing
+- Add QR pairing after choosing a camera/QR dependency and validating Android camera permissions.
+- Add reconnection UX, connection timeout, session expiry, and a visible disconnect state.
+- Add input payload validation and event-rate limiting.
+- Persist user preferences for pointer and scroll sensitivity between app launches.
 
 ### Windows input fidelity
-- Evaluate Windows Pointer Injection for genuine touch contacts and multi-touch injection. Current SendInput emits mouse/wheel events; it cannot reproduce stylus pressure or tilt.
-- Test app-specific behavior. Two-finger scroll and Ctrl+wheel zoom are common conventions, not guaranteed by every target app.
+- Evaluate Windows Pointer Injection for genuine touch contacts and pressure/tilt-aware stylus input. Current SendInput emits mouse/wheel events.
+- Test scroll and Ctrl+wheel zoom across target apps; application behavior is not uniform.
 - Consider a background/tray companion so the host can remain available without occupying the desktop.
 
 ### Release quality
 - Test on multiple Android screen sizes and stylus devices.
 - Profile end-to-end input latency and dropped events over Wi-Fi.
-- Document Windows Firewall setup for Private networks only.
 - Package a Windows release and an Android APK for local installation.
 
 ## Security constraints
 
-- Keep the initial host restricted to private IPv4 interfaces and trusted local networks.
-- Require the random session token and allow only one connected input client.
-- Never expose the plain ws:// host to public networks.
+- Keep the host restricted to private IPv4 interfaces and trusted local networks.
+- Require the session code and permit only one connected input client.
+- Never expose the unencrypted ws:// endpoint to public networks.
 - Harden event schemas and rate limits before wider distribution.
