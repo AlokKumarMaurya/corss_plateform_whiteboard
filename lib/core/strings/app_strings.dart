@@ -1,3 +1,5 @@
+import 'package:cross_platform_whiteboard/core/constants/session_constants.dart';
+
 abstract final class AppStrings {
   static const String appName = 'Whiteboard';
   static const String whiteboardTitle = 'Whiteboard';
@@ -51,5 +53,5 @@ abstract final class AppStrings {
   static const String messageConnectedToHost = 'Connected to the Windows whiteboard.';
   static const String messageSameNetwork = 'Both devices must be on the same Wi-Fi/LAN.';
   static const String errorMissingConnectionDetails = 'Enter the Windows host IP address and session code.';
-  static const int sessionPort = 8765;
+  static const int sessionPort = SessionConstants.defaultPort;
 }
