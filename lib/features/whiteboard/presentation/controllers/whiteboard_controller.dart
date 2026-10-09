@@ -165,6 +165,7 @@ class WhiteboardController extends GetxController {
           final DrawingStroke stroke = DrawingStroke.fromJson(rawStroke);
           _remoteActiveStrokes[_remoteKey(message.senderId, stroke.id)] = stroke;
         }
+        return;
       case SessionEventType.strokePoint:
         final Object? strokeId = payload['strokeId'];
         final Object? rawPoint = payload['point'];
@@ -180,6 +181,7 @@ class WhiteboardController extends GetxController {
         _remoteActiveStrokes[key] = current.copyWith(
           points: <DrawingPoint>[...current.points, point],
         );
+        return;
       case SessionEventType.strokeEnded:
         final Object? strokeId = payload['strokeId'];
         if (strokeId is! String) {
@@ -194,12 +196,16 @@ class WhiteboardController extends GetxController {
         _redoStack.clear();
         _canRedo.value = false;
         _repository.replaceStrokes(_strokes);
+        return;
       case SessionEventType.undo:
         _undo(publish: false);
+        return;
       case SessionEventType.redo:
         _redo(publish: false);
+        return;
       case SessionEventType.clearBoard:
         _clearCanvas(publish: false);
+        return;
       case SessionEventType.requestSnapshot:
         if (_sync.isHost) {
           _publish(SessionEventType.boardSnapshot, <String, dynamic>{
@@ -208,6 +214,7 @@ class WhiteboardController extends GetxController {
                 .toList(growable: false),
           });
         }
+        return;
       case SessionEventType.boardSnapshot:
         final Object? rawStrokes = payload['strokes'];
         if (rawStrokes is! List<dynamic>) {
@@ -225,6 +232,7 @@ class WhiteboardController extends GetxController {
         _redoStack.clear();
         _canRedo.value = false;
         _repository.replaceStrokes(_strokes);
+        return;
     }
   }
 
