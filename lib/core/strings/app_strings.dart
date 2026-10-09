@@ -31,4 +31,25 @@ abstract final class AppStrings {
   static const String actionConnectPhone = 'Connect phone';
   static const String titlePhoneConnection = 'Phone connection';
   static const String canvasSemanticsLabel = 'Whiteboard drawing area';
+  static const String sectionConnection = 'Live session';
+  static const String actionStartSession = 'Start Windows host';
+  static const String actionStopSession = 'Stop session';
+  static const String actionConnectSession = 'Connect to host';
+  static const String actionDisconnectSession = 'Disconnect';
+  static const String actionCopyCode = 'Copy session code';
+  static const String labelHostAddress = 'Windows host IP address';
+  static const String hintHostAddress = 'Example: 192.168.1.20';
+  static const String labelSessionCode = 'Session code';
+  static const String hintSessionCode = 'Paste the code shown on Windows';
+  static const String statusDisconnected = 'Disconnected';
+  static const String statusConnecting = 'Connecting';
+  static const String statusHosting = 'Hosting';
+  static const String statusConnected = 'Connected';
+  static const String messageWindowsHostReady = 'On the web app, enter one of these addresses and the session code:';
+  static const String messageNoHostAddresses = 'No local IPv4 address found. Connect this PC to Wi-Fi or Ethernet and try again.';
+  static const String messageKeepCodePrivate = 'Only share this code with devices you want to join this board.';
+  static const String messageConnectedToHost = 'Connected to the Windows whiteboard.';
+  static const String messageSameNetwork = 'Both devices must be on the same Wi-Fi/LAN.';
+  static const String errorMissingConnectionDetails = 'Enter the Windows host IP address and session code.';
+  static const int sessionPort = 8765;
 }
