@@ -10,7 +10,9 @@ abstract final class AppStrings {
   static const String inputSettings = 'Input settings';
   static const String writeModeHint = 'Drag to write in the active Windows app.';
   static const String moveModeHint = 'Drag to move the cursor; tap to click.';
-  static const String twoFingerHint = 'Two fingers scroll or pinch to zoom.'
+  static const String twoFingerHint = 'Two fingers scroll or pinch to zoom.';
+  static const String initialInputHint =
+      'Write with one finger, or switch to Move to control the cursor.';
   static const String whiteboardTitle = 'Windows companion';
   static const String whiteboardSubtitle =
       'Connect your phone and control the active Windows application.';
