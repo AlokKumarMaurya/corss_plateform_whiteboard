@@ -74,7 +74,7 @@ class RealtimeSessionService extends GetxService implements DrawingSyncGateway {
         scheme: 'ws',
         host: host.trim(),
         port: port,
-        path: '/whiteboard',
+        path: '/input-pad',
         queryParameters: <String, String>{'token': token.trim()},
       );
       final WebSocketChannel channel = WebSocketChannel.connect(uri);
