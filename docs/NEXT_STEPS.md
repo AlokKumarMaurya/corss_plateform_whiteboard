@@ -27,6 +27,7 @@ The base connection and drawing flow has been reported as working on real device
 - Add input payload validation and event-rate limiting.
 - Persist user preferences for pointer and scroll sensitivity between app launches.
 - Validate Tablet mode edge snapping and adjustable mapping zoom/area with multi-stroke letters (T, R, P) on a real phone/Windows setup, including multi-monitor desktops.
+- Validate Tablet mapping presets (Auto Fit, Balanced, Fine Writing) on different phone pad sizes and Windows display configurations; verify manual adjustments switch to Custom mapping.
 - Verify stylus hover repositioning on supported Android stylus hardware.
 
 ### Windows input fidelity
