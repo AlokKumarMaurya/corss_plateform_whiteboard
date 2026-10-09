@@ -183,6 +183,43 @@ class _InputPadControls extends StatelessWidget {
                         : AppStrings.trackpadModeHint,
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
+                  if (controller.tabletMode) ...<Widget>[
+                    const SizedBox(height: 12),
+                    _SensitivitySlider(
+                      label: AppStrings.tabletPrecision,
+                      value: controller.tabletZoom,
+                      min: 1,
+                      max: 4,
+                      divisions: 6,
+                      onChanged: controller.setTabletZoom,
+                    ),
+                    if (controller.tabletZoom > 1) ...<Widget>[
+                      _MappingPositionSlider(
+                        label: AppStrings.desktopAreaHorizontal,
+                        value: controller.tabletAreaX * 100,
+                        onChanged: (double value) =>
+                            controller.setTabletAreaX(value / 100),
+                      ),
+                      _MappingPositionSlider(
+                        label: AppStrings.desktopAreaVertical,
+                        value: controller.tabletAreaY * 100,
+                        onChanged: (double value) =>
+                            controller.setTabletAreaY(value / 100),
+                      ),
+                    ],
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton.icon(
+                        onPressed: () {
+                          controller.setTabletZoom(1);
+                          controller.setTabletAreaX(0.5);
+                          controller.setTabletAreaY(0.5);
+                        },
+                        icon: const Icon(Icons.center_focus_strong_rounded),
+                        label: const Text(AppStrings.tabletMappingReset),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 16),
                   _SensitivitySlider(
                     label: AppStrings.pointerSpeed,
@@ -246,6 +283,45 @@ class _SensitivitySlider extends StatelessWidget {
           width: 38,
           child: Text(
             '${value.toStringAsFixed(1)}×',
+            textAlign: TextAlign.end,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MappingPositionSlider extends StatelessWidget {
+  const _MappingPositionSlider({
+    required this.label,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final String label;
+  final double value;
+  final ValueChanged<double> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: <Widget>[
+        SizedBox(width: 104, child: Text(label)),
+        Expanded(
+          child: Slider(
+            value: value.clamp(0.0, 100.0).toDouble(),
+            min: 0,
+            max: 100,
+            divisions: 20,
+            label: '${value.round()}%',
+            onChanged: onChanged,
+          ),
+        ),
+        SizedBox(
+          width: 38,
+          child: Text(
+            '${value.round()}%',
             textAlign: TextAlign.end,
             style: Theme.of(context).textTheme.bodySmall,
           ),
