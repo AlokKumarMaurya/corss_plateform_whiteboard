@@ -28,7 +28,6 @@ void main() {
         pointer: 1,
         kind: PointerDeviceKind.touch,
         position: Offset.zero,
-        localPosition: Offset.zero,
       ),
     );
     controller.pointerMove(
@@ -36,7 +35,6 @@ void main() {
         pointer: 1,
         kind: PointerDeviceKind.touch,
         position: Offset(10, 5),
-        localPosition: Offset(10, 5),
       ),
     );
     controller.pointerUp(
@@ -44,7 +42,6 @@ void main() {
         pointer: 1,
         kind: PointerDeviceKind.touch,
         position: Offset(10, 5),
-        localPosition: Offset(10, 5),
       ),
     );
 
@@ -62,7 +59,6 @@ void main() {
         pointer: 1,
         kind: PointerDeviceKind.touch,
         position: Offset.zero,
-        localPosition: Offset.zero,
       ),
     );
     controller.pointerMove(
@@ -70,7 +66,6 @@ void main() {
         pointer: 1,
         kind: PointerDeviceKind.touch,
         position: Offset(8, 3),
-        localPosition: Offset(8, 3),
       ),
     );
     controller.pointerUp(
@@ -78,7 +73,6 @@ void main() {
         pointer: 1,
         kind: PointerDeviceKind.touch,
         position: Offset(8, 3),
-        localPosition: Offset(8, 3),
       ),
     );
 
