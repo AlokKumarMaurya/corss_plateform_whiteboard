@@ -180,6 +180,6 @@ class _FooterHint extends StatelessWidget {
   Widget build(BuildContext context) => const Row(children: <Widget>[
     Icon(Icons.tips_and_updates_outlined, size: 16, color: Color(0xFF7B8495)),
     SizedBox(width: 8),
-    Expanded(child: Text(AppStrings.statusEmpty, style: TextStyle(color: Color(0xFF7B8495, ), fontSize: 12))),
+    Expanded(child: Text(AppStrings.statusEmpty, style: TextStyle(color: Color(0xFF7B8495), fontSize: 12))),
   ]);
 }
