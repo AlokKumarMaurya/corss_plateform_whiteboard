@@ -9,16 +9,19 @@ import 'package:get/get.dart';
 
 /// Converts phone touch/stylus contacts into remote system pointer events.
 ///
-/// One contact draws by holding the remote left mouse button. Two contacts
-/// always cancel drawing and navigate using scroll/pinch gestures.
+/// Write mode holds the remote left button while dragging. Move mode moves the
+/// pointer without drawing. Two contacts always navigate using scroll/pinch.
 class InputPadController extends GetxController {
   InputPadController(this._session);
 
   final RealtimeSessionService _session;
   final Map<int, Offset> _contacts = <int, Offset>{};
   final RxBool _isNavigating = false.obs;
+  final RxBool _writeMode = true.obs;
+  final RxDouble _pointerSensitivity = 1.0.obs;
+  final RxDouble _scrollSensitivity = 4.0.obs;
   final RxString _hint =
-      'Touch with one finger to write; use two fingers to pan or zoom.'.obs;
+      'Write with one finger, or switch to Move to control the cursor.'.obs;
 
   Timer? _pendingFingerPress;
   Offset? _gestureCenter;
@@ -28,7 +31,32 @@ class InputPadController extends GetxController {
   bool _singleMoved = false;
 
   bool get isNavigating => _isNavigating.value;
+  bool get writeMode => _writeMode.value;
+  double get pointerSensitivity => _pointerSensitivity.value;
+  double get scrollSensitivity => _scrollSensitivity.value;
   String get hint => _hint.value;
+
+  void setWriteMode(bool value) {
+    if (_writeMode.value == value) return;
+    _writeMode.value = value;
+    _pendingFingerPress?.cancel();
+    _pendingFingerPress = null;
+    _releaseLeftButton();
+    if (_contacts.isNotEmpty) {
+      _suppressSingleUntilAllUp = true;
+    }
+    _hint.value = value
+        ? 'Write mode: touch and drag to draw in the active app.'
+        : 'Move mode: drag to move the cursor; tap to click.';
+  }
+
+  void setPointerSensitivity(double value) {
+    _pointerSensitivity.value = value.clamp(0.5, 2.5);
+  }
+
+  void setScrollSensitivity(double value) {
+    _scrollSensitivity.value = value.clamp(1.0, 8.0);
+  }
 
   void pointerDown(PointerDownEvent event) {
     _contacts[event.pointer] = event.localPosition;
@@ -36,16 +64,20 @@ class InputPadController extends GetxController {
     if (_contacts.length == 1) {
       _singleMoved = false;
       _suppressSingleUntilAllUp = false;
-      if (_isStylus(event.kind)) {
+      if (!_writeMode.value) {
+        _hint.value = 'Move mode: drag to move the cursor; tap to click.';
+      } else if (_isStylus(event.kind)) {
         _pressLeftButton();
       } else {
-        // Give a second finger a short window to claim the gesture so that
-        // a two-finger pan does not leave an accidental ink dot in Paint.
+        // Give a second finger a short window to claim navigation so that a
+        // two-finger pan does not leave an accidental ink dot in Paint.
         _pendingFingerPress?.cancel();
         _pendingFingerPress = Timer(
           const Duration(milliseconds: 70),
           () {
-            if (_contacts.length == 1 && !_suppressSingleUntilAllUp) {
+            if (_contacts.length == 1 &&
+                !_suppressSingleUntilAllUp &&
+                _writeMode.value) {
               _pressLeftButton();
             }
           },
@@ -100,12 +132,12 @@ class InputPadController extends GetxController {
     _singleMoved = true;
     _pendingFingerPress?.cancel();
     _pendingFingerPress = null;
-    if (!_leftButtonDown) {
+    if (_writeMode.value && !_leftButtonDown) {
       _pressLeftButton();
     }
     _send(SessionEventType.pointerMove, <String, dynamic>{
-      'dx': delta.dx,
-      'dy': delta.dy,
+      'dx': delta.dx * _pointerSensitivity.value,
+      'dy': delta.dy * _pointerSensitivity.value,
     });
   }
 
@@ -117,7 +149,7 @@ class InputPadController extends GetxController {
 
     if (_contacts.isEmpty) {
       if (wasSingleContact && !_suppressSingleUntilAllUp && !_singleMoved) {
-        // A short tap should still click in the foreground application.
+        // A stationary contact is a click in either mode.
         if (!_leftButtonDown) {
           _pressLeftButton();
         }
@@ -127,8 +159,9 @@ class InputPadController extends GetxController {
       _suppressSingleUntilAllUp = false;
       _gestureCenter = null;
       _gestureDistance = null;
-      _hint.value =
-          'Touch with one finger to write; use two fingers to pan or zoom.';
+      _hint.value = _writeMode.value
+          ? 'Write mode: touch and drag to draw in the active app.'
+          : 'Move mode: drag to move the cursor; tap to click.';
       return;
     }
 
@@ -162,7 +195,8 @@ class InputPadController extends GetxController {
   Offset get _center {
     if (_contacts.isEmpty) return Offset.zero;
     final List<Offset> points = _contacts.values.toList(growable: false);
-    return points.reduce((Offset a, Offset b) => a + b) / points.length.toDouble();
+    return points.reduce((Offset a, Offset b) => a + b) /
+        points.length.toDouble();
   }
 
   double get _distance {
@@ -177,7 +211,9 @@ class InputPadController extends GetxController {
     final Offset? previousCenter = _gestureCenter;
     final double? previousDistance = _gestureDistance;
 
-    if (previousCenter == null || previousDistance == null || previousDistance <= 1) {
+    if (previousCenter == null ||
+        previousDistance == null ||
+        previousDistance <= 1) {
       _gestureCenter = center;
       _gestureDistance = distance;
       return;
@@ -185,8 +221,6 @@ class InputPadController extends GetxController {
 
     final double distanceChange = distance - previousDistance;
     if (distanceChange.abs() >= 2.5) {
-      // Keep a stable distance baseline so slow pinches accumulate instead
-      // of being mistaken for repeated tiny scrolls.
       _gestureCenter = center;
       _gestureDistance = distance;
       final int zoomDelta = (distanceChange * 30.0).round().clamp(-480, 480);
@@ -198,17 +232,14 @@ class InputPadController extends GetxController {
 
     _gestureCenter = center;
     if (distanceChange.abs() > 0.5) {
-      // Finger spacing is changing, so wait for the pinch threshold rather
-      // than injecting accidental scroll while the user starts a zoom.
       return;
     }
 
     final Offset movement = center - previousCenter;
     if (movement.distanceSquared > 0) {
       _send(SessionEventType.scroll, <String, dynamic>{
-        // Match natural touchpad scrolling: content follows the fingers.
-        'dx': -movement.dx * 4,
-        'dy': -movement.dy * 4,
+        'dx': -movement.dx * _scrollSensitivity.value,
+        'dy': -movement.dy * _scrollSensitivity.value,
       });
     }
   }
@@ -218,8 +249,7 @@ class InputPadController extends GetxController {
       kind == PointerDeviceKind.invertedStylus;
 
   void _pressLeftButton() {
-    if (_leftButtonDown) return;
-    if (!_isConnected) return;
+    if (_leftButtonDown || !_isConnected) return;
     _leftButtonDown = true;
     _send(SessionEventType.pointerDown, const <String, dynamic>{});
   }
