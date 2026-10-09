@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:cross_platform_whiteboard/core/constants/session_constants.dart';
 import 'package:cross_platform_whiteboard/features/session/data/services/session_host_factory.dart';
 import 'package:cross_platform_whiteboard/features/session/domain/models/session_event_type.dart';
 import 'package:cross_platform_whiteboard/features/session/domain/models/session_message.dart';
@@ -14,8 +15,8 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 class RealtimeSessionService extends GetxService implements DrawingSyncGateway {
   RealtimeSessionService() : _clientId = _randomHex(16);
 
-  static const int defaultPort = 8765;
-  static const int _maximumMessageLength = 1048576;
+  static const int defaultPort = SessionConstants.defaultPort;
+  static const int _maximumMessageLength = SessionConstants.maximumMessageBytes;
 
   final SessionHost _host = createSessionHost();
   final String _clientId;
