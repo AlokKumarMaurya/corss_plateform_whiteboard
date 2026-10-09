@@ -94,6 +94,12 @@ class _DrawingPainter extends CustomPainter {
     if (stroke.points.isEmpty) {
       return;
     }
+    final Offset first = _toCanvasPoint(stroke.points.first, size);
+    if (stroke.isEraser) {
+      // Erasing is isolated to the canvas layer so transparent clearing works
+      // over any background, not just white.
+      canvas.saveLayer(Offset.zero & size, Paint());
+    }
     final Paint paint = Paint()
       ..color = Color(stroke.colorValue)
       ..strokeWidth = stroke.width
@@ -102,17 +108,19 @@ class _DrawingPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..isAntiAlias = true
       ..blendMode = stroke.isEraser ? BlendMode.clear : BlendMode.srcOver;
-    final Offset first = _toCanvasPoint(stroke.points.first, size);
     if (stroke.points.length == 1) {
       canvas.drawCircle(first, stroke.width / 2, paint..style = PaintingStyle.fill);
-      return;
+    } else {
+      final Path path = Path()..moveTo(first.dx, first.dy);
+      for (int index = 1; index < stroke.points.length; index++) {
+        final Offset point = _toCanvasPoint(stroke.points[index], size);
+        path.lineTo(point.dx, point.dy);
+      }
+      canvas.drawPath(path, paint);
     }
-    final Path path = Path()..moveTo(first.dx, first.dy);
-    for (int index = 1; index < stroke.points.length; index++) {
-      final Offset point = _toCanvasPoint(stroke.points[index], size);
-      path.lineTo(point.dx, point.dy);
+    if (stroke.isEraser) {
+      canvas.restore();
     }
-    canvas.drawPath(path, paint);
   }
 
   Offset _toCanvasPoint(DrawingPoint point, Size size) =>
