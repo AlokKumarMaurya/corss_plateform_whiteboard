@@ -12,7 +12,7 @@ import 'package:get/get.dart';
 /// Converts phone touch/stylus contacts into remote system pointer events.
 ///
 /// Write mode holds the remote left button while dragging. Move mode moves the
-/// pointer without drawing. Two contacts always navigate using scroll/pinch.
+/// pointer without drawing. Two contacts pinch to zoom; three contacts scroll.
 class InputPadController extends GetxController {
   InputPadController(this._session);
 
@@ -25,6 +25,7 @@ class InputPadController extends GetxController {
   final RxDouble _tabletAreaY = 0.5.obs;
   final RxString _tabletPreset = 'auto_fit'.obs;
   static const double _edgeSnapFraction = 0.04;
+  static const double _minimumPinchDistanceChange = 2.5;
   final RxBool _isNavigating = false.obs;
   final RxBool _writeMode = true.obs;
   final RxDouble _pointerSensitivity = 1.0.obs;
@@ -171,7 +172,13 @@ class InputPadController extends GetxController {
       _suppressSingleUntilAllUp = true;
       _gestureCenter = _center;
       _gestureDistance = _distance;
-      _hint.value = AppStrings.twoFingerHint;
+      _hint.value = AppStrings.twoFingerZoomHint;
+    } else if (_contacts.length == 3) {
+      // Reset the gesture baseline when a third finger joins; three fingers
+      // have a dedicated scroll-only gesture and must never trigger zoom.
+      _gestureCenter = _center;
+      _gestureDistance = null;
+      _hint.value = AppStrings.threeFingerScrollHint;
     }
   }
 
@@ -191,7 +198,9 @@ class InputPadController extends GetxController {
         _suppressSingleUntilAllUp = true;
         _gestureCenter = _center;
         _gestureDistance = _distance;
-        _hint.value = AppStrings.twoFingerHint;
+        _hint.value = _contacts.length >= 3
+            ? AppStrings.threeFingerScrollHint
+            : AppStrings.twoFingerZoomHint;
         return;
       }
       _updateNavigation();
@@ -295,10 +304,29 @@ class InputPadController extends GetxController {
 
   void _updateNavigation() {
     final Offset center = _center;
-    final double distance = _distance;
     final Offset? previousCenter = _gestureCenter;
-    final double? previousDistance = _gestureDistance;
 
+    // Three or more contacts are scroll-only. Use vertical center movement;
+    // never inspect pinch distance in this branch.
+    if (_contacts.length >= 3) {
+      if (previousCenter != null) {
+        final double verticalMovement = center.dy - previousCenter.dy;
+        if (verticalMovement.abs() > 0.5) {
+          _send(SessionEventType.scroll, <String, dynamic>{
+            'dx': 0.0,
+            'dy': -verticalMovement * _scrollSensitivity.value,
+          });
+        }
+      }
+      _gestureCenter = center;
+      _gestureDistance = null;
+      return;
+    }
+
+    // Exactly two contacts are zoom-only. Translating both fingers together
+    // does not scroll; only the distance between them changes zoom.
+    final double distance = _distance;
+    final double? previousDistance = _gestureDistance;
     if (previousCenter == null ||
         previousDistance == null ||
         previousDistance <= 1) {
@@ -308,27 +336,13 @@ class InputPadController extends GetxController {
     }
 
     final double distanceChange = distance - previousDistance;
-    if (distanceChange.abs() >= 2.5) {
-      _gestureCenter = center;
-      _gestureDistance = distance;
-      final int zoomDelta = (distanceChange * 30.0).round().clamp(-480, 480);
-      if (zoomDelta != 0) {
-        _send(SessionEventType.zoom, <String, dynamic>{'delta': zoomDelta});
-      }
-      return;
-    }
-
     _gestureCenter = center;
-    if (distanceChange.abs() > 0.5) {
-      return;
-    }
+    _gestureDistance = distance;
+    if (distanceChange.abs() < _minimumPinchDistanceChange) return;
 
-    final Offset movement = center - previousCenter;
-    if (movement.distanceSquared > 0) {
-      _send(SessionEventType.scroll, <String, dynamic>{
-        'dx': -movement.dx * _scrollSensitivity.value,
-        'dy': -movement.dy * _scrollSensitivity.value,
-      });
+    final int zoomDelta = (distanceChange * 30.0).round().clamp(-480, 480);
+    if (zoomDelta != 0) {
+      _send(SessionEventType.zoom, <String, dynamic>{'delta': zoomDelta});
     }
   }
 
