@@ -45,7 +45,8 @@ class RealtimeSessionService extends GetxService implements DrawingSyncGateway {
     await disconnect();
     status.value = SessionStatus.connecting;
     errorMessage.value = '';
-    final String token = _randomHex(32);
+    // A short code is practical to type manually; host remains LAN-only.
+    final String token = _randomHex(5);
 
     try {
       await _host.start(token: token, port: port);
