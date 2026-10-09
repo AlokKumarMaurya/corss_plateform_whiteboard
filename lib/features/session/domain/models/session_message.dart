@@ -54,7 +54,7 @@ class SessionMessage {
     }
 
     return SessionMessage(
-      version: version as int,
+      version: version,
       senderId: senderId,
       type: type,
       payload: payload,
