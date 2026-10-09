@@ -11,9 +11,10 @@ class _IoSessionHost implements SessionHost {
   final StreamController<SessionMessage> _messages =
       StreamController<SessionMessage>.broadcast();
   final Set<WebSocket> _clients = <WebSocket>{};
+  final List<HttpServer> _servers = <HttpServer>[];
+  final List<StreamSubscription<HttpRequest>> _serverSubscriptions =
+      <StreamSubscription<HttpRequest>>[];
 
-  HttpServer? _server;
-  StreamSubscription<HttpRequest>? _serverSubscription;
   String? _token;
   List<String> _localAddresses = <String>[];
 
@@ -28,26 +29,58 @@ class _IoSessionHost implements SessionHost {
     if (!Platform.isWindows) {
       throw UnsupportedError('Only the Windows desktop app can host a session.');
     }
-    if (_server != null) {
+    if (_servers.isNotEmpty) {
       throw StateError('A whiteboard session is already hosting.');
     }
     if (port < 1024 || port > 65535) {
-      throw ArgumentError.value(port, 'port', 'Port must be between 1024 and 65535.');
+      throw ArgumentError.value(
+        port,
+        'port',
+        'Port must be between 1024 and 65535.',
+      );
     }
 
-    _token = token;
-    _server = await HttpServer.bind(InternetAddress.anyIPv4, port);
-    _serverSubscription = _server!.listen(_handleRequest);
     final List<NetworkInterface> interfaces = await NetworkInterface.list(
       type: InternetAddressType.IPv4,
       includeLoopback: false,
     );
-    _localAddresses = interfaces
+    final List<String> privateAddresses = interfaces
         .expand((NetworkInterface interface) => interface.addresses)
-        .where((InternetAddress address) => address.type == InternetAddressType.IPv4)
+        .where(
+          (InternetAddress address) =>
+              address.type == InternetAddressType.IPv4 &&
+              _isPrivateIpv4(address.address),
+        )
         .map((InternetAddress address) => address.address)
         .toSet()
         .toList(growable: false);
+
+    if (privateAddresses.isEmpty) {
+      throw StateError(
+        'No private IPv4 address found. Connect to a private Wi-Fi or LAN network.',
+      );
+    }
+
+    _token = token;
+    for (final String address in privateAddresses) {
+      final HttpServer server = await HttpServer.bind(
+        InternetAddress(address),
+        port,
+      );
+      _servers.add(server);
+      _serverSubscriptions.add(server.listen(_handleRequest));
+    }
+    _localAddresses = privateAddresses;
+  }
+
+  bool _isPrivateIpv4(String address) {
+    final List<int> octets = address.split('.').map(int.parse).toList();
+    if (octets.length != 4) {
+      return false;
+    }
+    return octets[0] == 10 ||
+        (octets[0] == 172 && octets[1] >= 16 && octets[1] <= 31) ||
+        (octets[0] == 192 && octets[1] == 168);
   }
 
   Future<void> _handleRequest(HttpRequest request) async {
@@ -121,14 +154,22 @@ class _IoSessionHost implements SessionHost {
 
   @override
   Future<void> close() async {
-    await _serverSubscription?.cancel();
-    _serverSubscription = null;
+    for (final StreamSubscription<HttpRequest> subscription
+        in _serverSubscriptions) {
+      await subscription.cancel();
+    }
+    _serverSubscriptions.clear();
     for (final WebSocket socket in _clients.toList(growable: false)) {
-      await socket.close(WebSocketStatus.normalClosure, 'Host closed session');
+      await socket.close(
+        WebSocketStatus.normalClosure,
+        'Host closed session',
+      );
     }
     _clients.clear();
-    await _server?.close(force: true);
-    _server = null;
+    for (final HttpServer server in _servers) {
+      await server.close(force: true);
+    }
+    _servers.clear();
     _token = null;
     _localAddresses = <String>[];
   }
