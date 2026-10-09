@@ -15,7 +15,7 @@ class WhiteboardController extends GetxController {
   final RxList<DrawingStroke> _strokes = <DrawingStroke>[].obs;
   final Rxn<DrawingStroke> activeStroke = Rxn<DrawingStroke>();
   final Rx<DrawingTool> selectedTool = DrawingTool.pen.obs;
-  final RxInt selectedColorValue = const Color(0xFF172033).value.obs;
+  final RxInt selectedColorValue = const Color(0xFF172033).toARGB32().obs;
   final RxDouble strokeWidth = DrawingConstants.defaultStrokeWidth.obs;
   final RxBool _canRedo = false.obs;
   final List<DrawingStroke> _redoStack = <DrawingStroke>[];
@@ -36,7 +36,7 @@ class WhiteboardController extends GetxController {
   }
 
   void setColor(Color color) {
-    selectedColorValue.value = color.value;
+    selectedColorValue.value = color.toARGB32();
     selectedTool.value = DrawingTool.pen;
   }
 
@@ -57,7 +57,7 @@ class WhiteboardController extends GetxController {
     activeStroke.value = DrawingStroke(
       id: _createStrokeId(),
       points: <DrawingPoint>[_normalizePoint(position, size, pressure)],
-      colorValue: erasing ? Colors.white.value : selectedColorValue.value,
+      colorValue: erasing ? Colors.white.toARGB32() : selectedColorValue.value,
       width: erasing ? math.max(strokeWidth.value * 4, 16) : strokeWidth.value,
       isEraser: erasing,
     );
@@ -118,9 +118,7 @@ class WhiteboardController extends GetxController {
     return DrawingPoint(
       x: (position.dx / size.width).clamp(0.0, 1.0).toDouble(),
       y: (position.dy / size.height).clamp(0.0, 1.0).toDouble(),
-      pressure: pressure.isFinite
-          ? pressure.clamp(0.0, 1.0).toDouble()
-          : 1,
+      pressure: pressure.isFinite ? pressure.clamp(0.0, 1.0).toDouble() : 1,
       timestampMicros: DateTime.now().microsecondsSinceEpoch,
     );
   }
