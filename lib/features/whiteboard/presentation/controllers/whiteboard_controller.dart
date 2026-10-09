@@ -23,7 +23,7 @@ class WhiteboardController extends GetxController {
 
   List<DrawingStroke> get strokes => _strokes.toList(growable: false);
   bool get canUndo => _strokes.isNotEmpty;
-  bool get canRedo => _redoStack.isNotEmpty;
+  bool get canRedo => _canRedo.value;
   bool get isEmpty => _strokes.isEmpty && activeStroke.value == null;
 
   @override
