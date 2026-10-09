@@ -157,8 +157,9 @@ class WhiteboardController extends GetxController {
       return;
     }
 
-    final Map<String, dynamic> payload = message.payload;
-    switch (message.type) {
+    try {
+      final Map<String, dynamic> payload = message.payload;
+      switch (message.type) {
       case SessionEventType.strokeStarted:
         final Object? rawStroke = payload['stroke'];
         if (rawStroke is Map<String, dynamic>) {
@@ -233,6 +234,9 @@ class WhiteboardController extends GetxController {
         _canRedo.value = false;
         _repository.replaceStrokes(_strokes);
         return;
+      }
+    } on FormatException {
+      // Ignore malformed remote drawing data instead of crashing the UI.
     }
   }
 
