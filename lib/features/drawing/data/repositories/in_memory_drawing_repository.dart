@@ -9,6 +9,6 @@ class InMemoryDrawingRepository implements DrawingRepository {
 
   @override
   void replaceStrokes(List<DrawingStroke> strokes) {
-    _strokes = List<DrawingStroke>.of(strokes, growable: true);
+    _strokes = List<DrawingStroke>.of(strokes);
   }
 }
