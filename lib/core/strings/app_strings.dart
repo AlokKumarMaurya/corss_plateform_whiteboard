@@ -30,4 +30,5 @@ abstract final class AppStrings {
   static const String sectionWidth = 'Width';
   static const String actionConnectPhone = 'Connect phone';
   static const String titlePhoneConnection = 'Phone connection';
+  static const String canvasSemanticsLabel = 'Whiteboard drawing area';
 }
