@@ -140,11 +140,12 @@ class _InputPadControls extends StatelessWidget {
       isScrollControlled: true,
       builder: (BuildContext context) {
         return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
-            child: Obx(
-              () => Column(
-                mainAxisSize: MainAxisSize.min,
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+              child: Obx(
+                () => Column(
+                  mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
                   Text(
@@ -237,7 +238,8 @@ class _InputPadControls extends StatelessWidget {
                     divisions: 13,
                     onChanged: controller.setScrollSensitivity,
                   ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
