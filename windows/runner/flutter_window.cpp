@@ -76,7 +76,21 @@ bool FlutterWindow::OnCreate() {
         const auto* arguments =
             std::get_if<flutter::EncodableMap>(call.arguments());
 
-        if (call.method_name() == "moveRelative") {
+        if (call.method_name() == "moveAbsolute") {
+          const double normalized_x =
+              std::clamp(ReadNumber(arguments, "x"), 0.0, 1.0);
+          const double normalized_y =
+              std::clamp(ReadNumber(arguments, "y"), 0.0, 1.0);
+          const int left = GetSystemMetrics(SM_XVIRTUALSCREEN);
+          const int top = GetSystemMetrics(SM_YVIRTUALSCREEN);
+          const int width = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+          const int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+          if (width > 0 && height > 0) {
+            const int x = left + static_cast<int>(normalized_x * (width - 1) + 0.5);
+            const int y = top + static_cast<int>(normalized_y * (height - 1) + 0.5);
+            SetCursorPos(x, y);
+          }
+        } else if (call.method_name() == "moveRelative") {
           const LONG dx = static_cast<LONG>(
               std::clamp(ReadNumber(arguments, "dx") * 1.8, -2000.0, 2000.0));
           const LONG dy = static_cast<LONG>(
