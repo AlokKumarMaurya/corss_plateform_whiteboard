@@ -40,7 +40,7 @@ class SessionMessage {
     final Object? type = json['type'];
     final Object? payload = json['payload'];
 
-    if (version != currentVersion) {
+    if (version is! int || version != currentVersion) {
       throw FormatException('Unsupported protocol version: $version');
     }
     if (senderId is! String || senderId.isEmpty || senderId.length > 64) {
