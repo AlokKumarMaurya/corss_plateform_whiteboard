@@ -1,5 +1,5 @@
 name: cross_platform_whiteboard
-description: A cross-platform digital whiteboard with Android writing-tablet support.
+description: A wireless Android stylus trackpad for Windows applications.
 publish_to: "none"
 version: 0.1.0+1
 
