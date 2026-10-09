@@ -51,22 +51,29 @@ class InputPadScreen extends GetView<InputPadController> {
                     border: Border.all(color: const Color(0xFF303746)),
                   ),
                   clipBehavior: Clip.antiAlias,
-                  child: Listener(
-                    behavior: HitTestBehavior.opaque,
-                    onPointerDown: controller.pointerDown,
-                    onPointerMove: controller.pointerMove,
-                    onPointerHover: controller.pointerHover,
-                    onPointerUp: controller.pointerUp,
-                    onPointerCancel: controller.pointerCancel,
-                    child: Obx(
-                      () => CustomPaint(
-                        painter: _PadGridPainter(
-                          navigating: controller.isNavigating,
-                          writeMode: controller.writeMode,
+                  child: LayoutBuilder(
+                    builder: (BuildContext context, BoxConstraints constraints) {
+                      controller.setPadSize(
+                        Size(constraints.maxWidth, constraints.maxHeight),
+                      );
+                      return Listener(
+                        behavior: HitTestBehavior.opaque,
+                        onPointerDown: controller.pointerDown,
+                        onPointerMove: controller.pointerMove,
+                        onPointerHover: controller.pointerHover,
+                        onPointerUp: controller.pointerUp,
+                        onPointerCancel: controller.pointerCancel,
+                        child: Obx(
+                          () => CustomPaint(
+                            painter: _PadGridPainter(
+                              navigating: controller.isNavigating,
+                              writeMode: controller.writeMode,
+                            ),
+                            child: const SizedBox.expand(),
+                          ),
                         ),
-                        child: const SizedBox.expand(),
-                      ),
-                    ),
+                      );
+                    },
                   ),
                 ),
               ),
@@ -143,6 +150,38 @@ class _InputPadControls extends StatelessWidget {
                   Text(
                     AppStrings.inputSettings,
                     style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    AppStrings.pointerMappingMode,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  SegmentedButton<bool>(
+                    segments: const <ButtonSegment<bool>>[
+                      ButtonSegment<bool>(
+                        value: false,
+                        icon: Icon(Icons.touchpad_mouse_rounded),
+                        label: Text(AppStrings.trackpadMode),
+                      ),
+                      ButtonSegment<bool>(
+                        value: true,
+                        icon: Icon(Icons.tablet_mac_rounded),
+                        label: Text(AppStrings.tabletMode),
+                      ),
+                    ],
+                    selected: <bool>{controller.tabletMode},
+                    showSelectedIcon: false,
+                    onSelectionChanged: (Set<bool> selection) {
+                      controller.setTabletMode(selection.first);
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    controller.tabletMode
+                        ? AppStrings.tabletModeHint
+                        : AppStrings.trackpadModeHint,
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
                   const SizedBox(height: 16),
                   _SensitivitySlider(
