@@ -163,6 +163,37 @@ void main() {
     expect(session.messages.first.payload['y'], 0.25);
   });
 
+  test('tablet presets set zoom and reset the mapped desktop area', () {
+    controller.setTabletZoom(4);
+    controller.setTabletAreaX(1);
+    controller.setTabletAreaY(0);
+
+    controller.applyTabletPreset('balanced');
+    expect(controller.tabletPreset, 'balanced');
+    expect(controller.tabletZoom, 2.0);
+    expect(controller.tabletAreaX, 0.5);
+    expect(controller.tabletAreaY, 0.5);
+
+    controller.applyTabletPreset('fine_writing');
+    expect(controller.tabletPreset, 'fine_writing');
+    expect(controller.tabletZoom, 3.0);
+
+    controller.applyTabletPreset('auto_fit');
+    expect(controller.tabletPreset, 'auto_fit');
+    expect(controller.tabletZoom, 1.0);
+    expect(controller.tabletAreaX, 0.5);
+    expect(controller.tabletAreaY, 0.5);
+  });
+
+  test('manual tablet adjustments switch the preset to custom', () {
+    controller.applyTabletPreset('balanced');
+
+    controller.setTabletAreaX(0.8);
+
+    expect(controller.tabletPreset, 'custom');
+    expect(controller.tabletAreaX, 0.8);
+  });
+
   test('stylus hover repositions the pointer without drawing', () {
     controller.pointerHover(
       const PointerHoverEvent(
