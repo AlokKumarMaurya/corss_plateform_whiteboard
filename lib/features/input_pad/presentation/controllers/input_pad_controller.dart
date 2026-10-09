@@ -1,9 +1,9 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:cross_platform_whiteboard/features/session/data/services/realtime_session_service.dart';
 import 'package:cross_platform_whiteboard/features/session/domain/models/session_event_type.dart';
 import 'package:cross_platform_whiteboard/features/session/domain/models/session_message.dart';
+import 'package:cross_platform_whiteboard/features/session/domain/models/session_status.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -18,10 +18,10 @@ class InputPadController extends GetxController {
   final RealtimeSessionService _session;
   final Map<int, Offset> _contacts = <int, Offset>{};
   final RxBool _isNavigating = false.obs;
-  final RxString _hint = 'Touch with one finger to write; use two fingers to pan or zoom.'.obs;
+  final RxString _hint =
+      'Touch with one finger to write; use two fingers to pan or zoom.'.obs;
 
   Timer? _pendingFingerPress;
-  Offset? _lastSinglePosition;
   Offset? _gestureCenter;
   double? _gestureDistance;
   bool _leftButtonDown = false;
@@ -35,7 +35,6 @@ class InputPadController extends GetxController {
     _contacts[event.pointer] = event.localPosition;
 
     if (_contacts.length == 1) {
-      _lastSinglePosition = event.localPosition;
       _singleMoved = false;
       _suppressSingleUntilAllUp = false;
       if (_isStylus(event.kind)) {
@@ -109,7 +108,6 @@ class InputPadController extends GetxController {
       'dx': delta.dx,
       'dy': delta.dy,
     });
-    _lastSinglePosition = event.localPosition;
   }
 
   void pointerUp(PointerEvent event) {
@@ -130,8 +128,8 @@ class InputPadController extends GetxController {
       _suppressSingleUntilAllUp = false;
       _gestureCenter = null;
       _gestureDistance = null;
-      _lastSinglePosition = null;
-      _hint.value = 'Touch with one finger to write; use two fingers to pan or zoom.';
+      _hint.value =
+          'Touch with one finger to write; use two fingers to pan or zoom.';
       return;
     }
 
@@ -187,9 +185,7 @@ class InputPadController extends GetxController {
     final double distanceChange = distance - previousDistance;
     final double distanceRatio = distanceChange.abs() / previousDistance;
     if (distanceRatio >= 0.012) {
-      final int zoomDelta = (distanceChange * 2.0)
-          .round()
-          .clamp(-480, 480);
+      final int zoomDelta = (distanceChange * 2.0).round().clamp(-480, 480);
       if (zoomDelta != 0) {
         _send(SessionEventType.zoom, <String, dynamic>{'delta': zoomDelta});
       }
@@ -223,8 +219,7 @@ class InputPadController extends GetxController {
   }
 
   void _send(String type, Map<String, dynamic> payload) {
-    if (!_session.isHost &&
-        _session.status.value != SessionStatus.connected) {
+    if (!_session.isHost && _session.status.value != SessionStatus.connected) {
       return;
     }
     _session.publish(
