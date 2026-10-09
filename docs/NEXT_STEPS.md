@@ -11,7 +11,8 @@ The Android phone is an input device for the Windows computer, not a second whit
 - Android input pad with one-finger writing, tap-to-click, and two-finger scroll/pinch gestures.
 - Host-side release of the mouse button when the client disconnects.
 - **Input controls:** compact Write/Move toolbar, adjustable pointer and scroll sensitivity (scroll up to 14×), and app-bar disconnect action while connected.
-- **Stylus writing:** hover-capable styluses can reposition the pointer between separate strokes without drawing; touch-only devices can switch to Move mode to reposition.
+- **Pointer mapping:** Trackpad mode retains relative cursor movement; Tablet mode maps each touch position to the Windows desktop for separate-stroke writing.
+- **Stylus writing:** hover-capable styluses can reposition the pointer between separate strokes without drawing.
 - GetX bindings and tests/CI for Dart analysis, tests, and Windows compilation.
 
 ## Current validation
@@ -25,7 +26,8 @@ The base connection and drawing flow has been reported as working on real device
 - Add reconnection UX, connection timeout, session expiry, and a visible disconnect state.
 - Add input payload validation and event-rate limiting.
 - Persist user preferences for pointer and scroll sensitivity between app launches.
-- Verify stylus hover repositioning on supported Android stylus hardware; document Move-mode repositioning for touch-only devices.
+- Validate Tablet mode with multi-stroke letters (T, R, P) on a real phone/Windows setup, including multi-monitor desktops.
+- Verify stylus hover repositioning on supported Android stylus hardware.
 
 ### Windows input fidelity
 - Evaluate Windows Pointer Injection for genuine touch contacts and pressure/tilt-aware stylus input. Current SendInput emits mouse/wheel events.
