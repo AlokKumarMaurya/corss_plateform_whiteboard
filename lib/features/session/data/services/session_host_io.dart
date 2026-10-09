@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cross_platform_whiteboard/core/constants/session_constants.dart';
+import 'package:cross_platform_whiteboard/features/session/domain/models/session_event_type.dart';
 import 'package:cross_platform_whiteboard/features/session/domain/models/session_message.dart';
 import 'package:cross_platform_whiteboard/features/session/domain/repositories/session_host.dart';
 
@@ -31,7 +32,7 @@ class _IoSessionHost implements SessionHost {
       throw UnsupportedError('Only the Windows desktop app can host a session.');
     }
     if (_servers.isNotEmpty) {
-      throw StateError('A whiteboard session is already hosting.');
+      throw StateError('A session is already hosting.');
     }
     if (port < 1024 || port > 65535) {
       throw ArgumentError.value(
@@ -85,7 +86,7 @@ class _IoSessionHost implements SessionHost {
   }
 
   Future<void> _handleRequest(HttpRequest request) async {
-    if (request.uri.path != '/whiteboard') {
+    if (request.uri.path != '/input-pad') {
       request.response.statusCode = HttpStatus.notFound;
       await request.response.close();
       return;
@@ -106,13 +107,28 @@ class _IoSessionHost implements SessionHost {
       _clients.add(socket);
       socket.listen(
         (Object? raw) => _handleMessage(socket, raw),
-        onError: (Object error, StackTrace stackTrace) => _clients.remove(socket),
-        onDone: () => _clients.remove(socket),
+        onError: (Object error, StackTrace stackTrace) {
+          _handleClientDisconnect(socket);
+        },
+        onDone: () => _handleClientDisconnect(socket),
         cancelOnError: true,
       );
     } on WebSocketException {
       // The upgrade can fail after the response has started; do not attempt
       // to write a second HTTP response in that case.
+    }
+  }
+
+  void _handleClientDisconnect(WebSocket socket) {
+    if (_clients.remove(socket)) {
+      // A lost connection must never leave the OS mouse button held down.
+      _messages.add(
+        const SessionMessage(
+          senderId: 'session-host',
+          type: SessionEventType.pointerUp,
+          payload: <String, dynamic>{},
+        ),
+      );
     }
   }
 
