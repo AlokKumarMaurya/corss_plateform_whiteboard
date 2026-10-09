@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show Size;
 
 import 'package:cross_platform_whiteboard/core/strings/app_strings.dart';
 import 'package:cross_platform_whiteboard/features/session/data/services/realtime_session_service.dart';
