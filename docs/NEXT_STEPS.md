@@ -1,71 +1,62 @@
-# Next steps: mobile stylus input pad for desktop/web whiteboard
+# Next steps: wireless stylus-enabled trackpad
 
-## Product behavior (source of truth)
+## Product definition
 
-The desktop Windows app or web app owns and displays the large whiteboard canvas. An Android phone acts as a wireless stylus-enabled input pad while the user records or teaches from the desktop.
+The Android phone is an input device for the Windows computer, not a second whiteboard. The user can open any drawing or teaching application on Windows (Paint, PowerPoint, OneNote, a browser whiteboard, etc.) and use the phone as a comfortable writing surface.
 
-The phone is not a second whiteboard and does not send completed mobile-canvas strokes for replication. It sends real-time input events that control the desktop canvas.
+## Interaction contract
 
-Chosen interactions:
-- **Direct touch:** normalized phone coordinates move the pointer within the desktop whiteboard canvas.
-- **Ink:** stylus/finger down, move, and up events create strokes on the desktop canvas when drawing mode is active.
-- **Navigation:** two-finger drag pans the desktop canvas; pinch-to-zoom scales the desktop canvas around the gesture anchor.
-- **Separation:** navigation gestures must never accidentally add ink. Single-contact drawing and two-contact navigation need explicit gesture arbitration.
-- **Transport:** begin with Windows host + Android client on the same private Wi-Fi. The web app can be another desktop canvas client where appropriate. A web browser cannot listen on a local port to become the LAN host.
+- **One finger / stylus:** left mouse button is held while moving the pointer, so the foreground app receives a normal mouse drag/drawing gesture.
+- **Tap:** click.
+- **Two-finger drag:** send vertical/horizontal wheel input for scrolling or panning.
+- **Pinch:** send Ctrl+wheel input for zoom.
+- **Gesture arbitration:** a short delay lets a second finger claim navigation before a finger press begins, preventing most accidental dots. Navigation must always release the remote left button.
+- **Disconnect safety:** host-side connection close sends a mouse-button release so a dropped phone cannot leave a drag active.
 
-## Current branch slice
+## Implemented in this slice
 
-feature/windows-web-live-session currently provides the first WebSocket/session prototype: Windows LAN host, web client, a versioned protocol, and synchronized drawing/board events. It is useful transport groundwork, but its current board-replication behavior is not yet the intended phone-as-input-pad interaction. The next implementation slice must change the event model and UI accordingly rather than polishing the current mirrored-canvas behavior.
+- Versioned session messages now include pointer move/down/up, scroll, and zoom events.
+- Android uses a dedicated input surface instead of the whiteboard screen.
+- Windows uses a companion connection screen and hosts a single authenticated input client on private IPv4 interfaces.
+- Windows runner exposes a native MethodChannel that maps input events to Win32 SendInput.
+- Two-finger gesture recognition emits wheel/pinch input; the Windows bridge turns pinch into Ctrl+wheel.
+- The Windows host releases the left mouse button when a client disconnects.
+- Unit coverage was expanded for the input event protocol and the stale counter-widget test was replaced with an app smoke test.
 
-## Implementation plan
+## Immediate validation
 
-### Phase 1 — Establish the host-canvas input protocol
-1. Define versioned input messages for pointer move, pointer down, pointer up, stylus pressure/tilt when supported, tool selection, undo/redo/clear, two-finger pan, and pinch scale plus anchor.
-2. Include a stable device/session ID and normalized coordinates; validate event type, coordinate ranges, pointer IDs, message size, and event rates.
-3. Keep drawing models and board mutations on the host canvas. Do not treat the phone as an authoritative board or broadcast every completed stroke as the primary interaction.
-4. Add protocol unit tests for valid events, malformed payloads, coordinate boundaries, and gesture messages.
+1. Run flutter pub get, flutter analyze, and flutter test.
+2. Run flutter build windows on Windows to compile the native MethodChannel and Win32 input code.
+3. Run the companion on Windows and connect an Android phone on the same private Wi-Fi.
+4. Open Paint, make it the foreground application, and test drawing, taps, two-finger scrolling, and pinch zoom.
+5. Repeat in PowerPoint, OneNote, and a browser-based whiteboard; note application-specific differences.
+6. Disconnect while a stroke is active and verify the mouse button is released.
+7. Test touch-only and stylus input separately on a real Android device.
 
-### Phase 2 — Desktop canvas input adapter
-1. Add a dedicated input adapter/controller that translates remote input messages into canvas actions.
-2. Map normalized phone coordinates to the desktop whiteboard viewport, not the whole OS desktop.
-3. Ensure pointer movement alone moves the cursor but does not draw; only a valid drawing contact/mode produces ink.
-4. Route remote pointer down/move/up through the same drawing pipeline used by local mouse/stylus input so local and remote behavior stays consistent.
-5. Apply pan and zoom to the host canvas transform. Preserve the gesture anchor during pinch-to-zoom.
-6. Add tests for pointer-to-canvas mapping, drawing state transitions, pan/zoom transforms, disconnect during an active stroke, and avoiding ink during navigation.
+## Next implementation phases
 
-### Phase 3 — Android input-pad experience
-1. Add an Android-specific full-screen input surface with connection status, host IP/session code, connect/disconnect, and drawing/navigation feedback.
-2. Handle stylus and touch events; send pointer movement and drawing contact state in real time.
-3. Recognize two-finger pan and pinch-to-zoom, and suppress drawing while those gestures are active.
-4. Start with manual IP/session-code entry; add QR pairing after the core interaction is reliable.
-5. Keep mobile UI focused on input and essential tools; do not render a duplicate full whiteboard canvas.
+### Reliability and usability
+- Tune touchpad pointer acceleration/sensitivity and scroll speed.
+- Add a dedicated way to move the pointer without drawing, while retaining the simple one-finger drawing workflow.
+- Improve gesture arbitration to eliminate any accidental click when a second finger arrives.
+- Add rate limiting, input payload validation, connection timeout, session expiry, and reconnection.
+- Add QR pairing and a copy/paste-friendly short connection code.
+- Show connection loss and host status clearly; make host shutdown release all active input states.
 
-### Phase 4 — Connectivity and reliability
-1. Verify Windows host + Android input pad on the same private Wi-Fi, including Windows Firewall restricted to Private networks.
-2. Verify web build and Windows build; run flutter analyze and flutter test.
-3. Test connection loss, host shutdown, reconnect, session expiry, and stale pointer cleanup.
-4. Measure end-to-end input latency and dropped/misordered events on real devices. Add batching only if profiling shows it helps without making handwriting feel delayed.
-5. Consider secure relay/companion hosting later if users need different networks or a deployed HTTPS web app. A plain ws:// LAN endpoint is not a production solution for arbitrary HTTPS-hosted browsers.
+### Windows input fidelity
+- Evaluate Windows Pointer Injection for genuine touch contacts and multi-touch injection. Current SendInput emits mouse/wheel events; it cannot reproduce stylus pressure or tilt.
+- Test app-specific behavior. Two-finger scroll and Ctrl+wheel zoom are common conventions, not guaranteed by every target app.
+- Consider a background/tray companion so the host can remain available without occupying the desktop.
 
-### Phase 5 — Teaching workflow polish
-1. Add QR pairing and reconnect UX.
-2. Tune stroke smoothing and stylus pressure if the target hardware exposes reliable data.
-3. Add board persistence and PNG export after input interaction is stable.
-4. Test a complete recording workflow: connect phone, write code/diagrams, pan/zoom, undo/erase, and record the desktop canvas.
+### Release quality
+- Test on multiple Android screen sizes and stylus devices.
+- Profile end-to-end input latency and dropped events over Wi-Fi.
+- Document Windows Firewall setup for Private networks only.
+- Package a Windows release and an Android APK for local installation.
 
-## Manual verification checklist
+## Security constraints
 
-- Start the Windows host and connect an Android phone on the same private Wi-Fi.
-- Confirm the phone shows an input surface, not a duplicate board.
-- Move the stylus without drawing to move the desktop canvas pointer without adding ink.
-- Press and write; confirm ink appears only on the desktop canvas and follows the stylus with acceptable latency.
-- Drag two fingers to pan and pinch to zoom; confirm neither gesture creates ink.
-- Test undo, redo, clear, disconnect during a stroke, reconnect, and host shutdown.
-- Separately confirm the web canvas renders and builds successfully. Browser-hosting on a LAN is not assumed.
-
-## Security / platform constraints
-
-- The random session code is required for WebSocket connection; never log or share it publicly.
-- Keep the initial host limited to private LAN use and allow it through Windows Firewall only on Private networks.
-- Browsers cannot run a listening local socket. Production hosting over HTTPS needs a secure local companion/relay approach.
-- Validate message schemas, coordinate ranges, pointer state, message sizes, and event rates before using the session beyond a trusted local network.
+- Keep the initial host restricted to private IPv4 interfaces and trusted local networks.
+- Require the random session token and allow only one connected input client.
+- Never expose the plain ws:// host to public networks.
+- Harden event schemas and rate limits before wider distribution.
