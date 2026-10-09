@@ -2,43 +2,45 @@
 
 A Flutter whiteboard for Windows and web, with Android as a wireless writing tablet over the same Wi-Fi network.
 
-## Status
+## Current status
 
-This repository is being initialized. The first milestone is the shared local drawing canvas. Phone-to-laptop streaming, QR pairing, and production hardening are not implemented yet.
+The initial foundation provides a Flutter package manifest, GetX route setup, shared drawing models, a local canvas, pen color/width controls, eraser, undo/redo, and controller/model tests.
 
-## Architecture goals
+**Not implemented yet:** WebSocket session hosting, phone connection, QR pairing, PNG export, persistent boards, and the web-to-local-companion connection flow.
 
-- Clean architecture with a feature-first structure.
-- GetX for state management and route management through `GetMaterialApp` / `GetPage`.
-- Shared drawing domain models that do not depend on Flutter widgets.
-- Reusable UI widgets and centralized app strings/messages.
-- Shared canvas rendering and pointer input for local drawing.
-- A platform-specific connection layer: native Windows host and Android client; browser-host behavior will be addressed explicitly rather than importing `dart:io` into web code.
+## Architecture
 
-## Planned milestones
+- Feature-first folders with domain/data/presentation boundaries.
+- GetX for state management, bindings, and navigation via `GetPage`.
+- Drawing models are separated from canvas rendering and pointer input.
+- User-facing strings are centralized in `lib/core/strings/app_strings.dart`.
+- Common UI patterns live in `lib/shared/widgets/`.
+- Normalized canvas coordinates prepare for different screen sizes and remote input.
 
-1. Drawing canvas and pure Dart stroke models.
-2. Local drawing tools: pen color/size, eraser, undo/redo, clear.
-3. Windows-hosted WebSocket session and Android drawing client.
-4. QR pairing, expiring credentials, reconnect behavior, and same-network documentation.
-5. Web client and supported companion-host connection flow.
+## Packages
+
+- `get`: state management, bindings, and navigation.
+- `web_socket_channel`: planned for the cross-platform socket client.
+- Flutter SDK `CustomPainter` and pointer events: local drawing.
+
+The `clean_util` package has not been added yet because its exact package identity and API need to be confirmed before introducing an unverified dependency.
+
+## Next milestones
+
+1. Verify `flutter pub get`, `flutter analyze`, and `flutter test` locally.
+2. Improve stroke rendering performance and implement export.
+3. Implement a native Windows WebSocket host and Android connection client.
+4. Add short-lived QR pairing credentials and safe reconnection.
+5. Support web whiteboard sessions through a local companion connection flow.
 
 ## Development
-
-Use a current stable Flutter SDK. After the Flutter scaffold and dependencies are committed:
 
 ```bash
 flutter pub get
 flutter analyze
 flutter test
 flutter run -d windows
+flutter run -d chrome
 ```
 
-Web can be run with `flutter run -d chrome`; Android should be tested on a physical device for touch and stylus behavior.
-
-## Quality principles
-
-- Keep domain models independent of widgets and networking.
-- Centralize user-facing strings and route names.
-- Reuse common widgets rather than duplicate UI patterns.
-- Never mark a feature complete until it has been tested on its target platform.
+Use a physical Android device to test touch and stylus input. Network behavior must be verified on the same Wi-Fi network. The repository code has not yet been built or exercised in a local Flutter environment.
