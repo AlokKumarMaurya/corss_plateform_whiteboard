@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cross_platform_whiteboard/features/drawing/data/repositories/in_memory_drawing_repository.dart';
 import 'package:cross_platform_whiteboard/features/drawing/domain/models/drawing_tool.dart';
+import 'package:cross_platform_whiteboard/features/session/domain/models/session_event_type.dart';
 import 'package:cross_platform_whiteboard/features/session/domain/models/session_message.dart';
 import 'package:cross_platform_whiteboard/features/session/domain/repositories/drawing_sync_gateway.dart';
 import 'package:cross_platform_whiteboard/features/whiteboard/presentation/controllers/whiteboard_controller.dart';
@@ -33,11 +34,14 @@ void main() {
     expect(controller.strokes.single.points.first.x, 0.25);
     expect(controller.strokes.single.points.first.y, 0.5);
     expect(repository.strokes, hasLength(1));
-    expect(sync.published.map((SessionMessage message) => message.type), <String>[
-      'stroke_started',
-      'stroke_point',
-      'stroke_ended',
-    ]);
+    expect(
+      sync.published.map((SessionMessage message) => message.type),
+      <String>[
+        SessionEventType.strokeStarted,
+        SessionEventType.strokePoint,
+        SessionEventType.strokeEnded,
+      ],
+    );
   });
 
   test('switching to eraser creates an eraser stroke', () {
@@ -63,44 +67,50 @@ void main() {
 
   test('applies a remote stroke to the shared drawing repository', () async {
     const String remoteId = 'remote-stroke-1';
-    sync.emit(const SessionMessage(
-      senderId: 'browser-client',
-      type: 'stroke_started',
-      payload: <String, dynamic>{
-        'stroke': <String, dynamic>{
-          'id': remoteId,
-          'points': <Map<String, dynamic>>[
-            <String, dynamic>{
-              'x': 0.25,
-              'y': 0.5,
-              'pressure': 1,
-              'timestampMicros': 1,
-            },
-          ],
-          'colorValue': 4278190080,
-          'width': 3.5,
-          'isEraser': false,
+    sync.emit(
+      const SessionMessage(
+        senderId: 'browser-client',
+        type: SessionEventType.strokeStarted,
+        payload: <String, dynamic>{
+          'stroke': <String, dynamic>{
+            'id': remoteId,
+            'points': <Map<String, dynamic>>[
+              <String, dynamic>{
+                'x': 0.25,
+                'y': 0.5,
+                'pressure': 1,
+                'timestampMicros': 1,
+              },
+            ],
+            'colorValue': 4278190080,
+            'width': 3.5,
+            'isEraser': false,
+          },
         },
-      },
-    ));
-    sync.emit(const SessionMessage(
-      senderId: 'browser-client',
-      type: 'stroke_point',
-      payload: <String, dynamic>{
-        'strokeId': remoteId,
-        'point': <String, dynamic>{
-          'x': 0.75,
-          'y': 0.8,
-          'pressure': 1,
-          'timestampMicros': 2,
+      ),
+    );
+    sync.emit(
+      const SessionMessage(
+        senderId: 'browser-client',
+        type: SessionEventType.strokePoint,
+        payload: <String, dynamic>{
+          'strokeId': remoteId,
+          'point': <String, dynamic>{
+            'x': 0.75,
+            'y': 0.8,
+            'pressure': 1,
+            'timestampMicros': 2,
+          },
         },
-      },
-    ));
-    sync.emit(const SessionMessage(
-      senderId: 'browser-client',
-      type: 'stroke_ended',
-      payload: <String, dynamic>{'strokeId': remoteId},
-    ));
+      ),
+    );
+    sync.emit(
+      const SessionMessage(
+        senderId: 'browser-client',
+        type: SessionEventType.strokeEnded,
+        payload: <String, dynamic>{'strokeId': remoteId},
+      ),
+    );
     await Future<void>.delayed(Duration.zero);
 
     expect(controller.strokes, hasLength(1));
