@@ -1,67 +1,62 @@
-# Cross-Platform Whiteboard
+# Wireless Stylus Pad
 
-A Flutter teaching whiteboard for Windows and web, controlled by an Android phone used as a wireless stylus-enabled input pad. The desktop/browser owns the large canvas; the phone sends real-time pointer, drawing, and gesture input. The phone is not intended to display a second whiteboard and mirror its completed strokes.
+A Flutter Android app that turns a phone into a wireless stylus-enabled trackpad for a Windows PC. The phone sends real-time input events to a small Windows companion, which injects mouse and scroll input into the currently active desktop application.
 
-## Intended user experience
+**This project does not need its own web whiteboard.** Use Paint, PowerPoint, OneNote, a browser-based whiteboard, or another application already installed on Windows.
 
-- Open the large whiteboard on Windows or in a desktop browser for teaching and screen recording.
-- Connect an Android phone on the same private Wi-Fi network.
-- Use a finger or stylus on the phone's input surface. Direct-touch coordinates move the pointer within the desktop whiteboard canvas; drawing contact creates ink on the desktop canvas.
-- Drag with two fingers to pan and pinch to zoom the desktop canvas.
-- Use desktop/web tools for the authoritative board, undo/redo, erase, and clear.
+## Target interaction
 
-## Current implementation status
-
-The main branch contains the local whiteboard foundation. The feature/windows-web-live-session branch is an early WebSocket/session prototype:
-
-- Windows desktop can start a LAN WebSocket host on port 8765.
-- The web build can connect to a Windows host using its local IPv4 address and a session code.
-- Drawing events use a versioned JSON protocol with normalized coordinates.
-- The prototype currently synchronizes board/stroke events between clients. It is transport groundwork, not yet the final mobile input-pad experience.
-- Android input-pad UI, remote pointer injection into the desktop canvas, two-finger pan, pinch-to-zoom, and QR pairing still need to be implemented and tested.
+- One finger or stylus contact holds the left mouse button while movement controls the pointer, allowing handwriting in the active application.
+- A short one-finger tap sends a click.
+- Two-finger movement sends scroll/pan input.
+- Pinching apart and together sends Ctrl+mouse-wheel zoom input.
+- Switching to a different Windows application changes the target automatically because input is sent to the foreground application.
+- If the phone disconnects while drawing, the Windows host sends a mouse-button release to avoid a stuck drag.
 
 ## Architecture
 
-- Feature-first folders with domain/data/presentation boundaries.
-- GetX for state management, route bindings, and navigation via GetPage.
-- Desktop/web is authoritative for canvas state, rendering, transforms, and board mutations.
-- Android sends versioned input events (pointer move/down/up, optional stylus metadata, tool commands, pan, and pinch); it does not own a replicated full-size board.
-- Normalize phone input coordinates and map them to the desktop canvas viewport. Keep pointer movement separate from drawing contact so moving the pointer does not automatically draw.
-- Keep gesture recognition and arbitration on the input side, and apply pan/zoom transforms on the host canvas.
-- Keep WebSocket transport behind an abstraction and platform-specific host creation behind conditional imports. Browsers cannot listen on a local network port; the initial LAN host is Windows.
-- GetX owns UI state, route bindings, and navigation. Keep protocol/transport and drawing-domain logic separate from widgets.
-- User-facing strings are centralized in lib/core/strings/app_strings.dart; reusable UI belongs in lib/shared/widgets/.
+- **Android / Flutter:** full-screen touch surface, stylus/touch event collection, gesture arbitration, and connection UI.
+- **Windows / Flutter:** private-LAN WebSocket host, session code, and connection UI.
+- **Windows native runner:** a MethodChannel backed by Win32 SendInput injects relative pointer movement, left-button down/up, wheel scrolling, horizontal scrolling, and Ctrl+wheel zoom.
+- **Transport:** versioned JSON messages over WebSocket on the same private Wi-Fi/LAN. Windows listens on port 8765 and permits one connected input client.
+- **State management:** GetX controllers and bindings; protocol, transport, presentation, and native input remain separate.
 
 ## Development
 
-Run these commands from the repository root:
+Install Flutter and enable the Windows desktop target. Then run:
 
     flutter pub get
     flutter analyze
     flutter test
-    flutter build web
     flutter run -d windows
-    flutter run -d chrome
 
-## Current prototype smoke test
+On the Android phone, enable USB debugging and run:
 
-1. Run flutter run -d windows and click **Start Windows host**.
-2. Keep the Windows app open. Copy a displayed private IPv4 address and the session code.
-3. Run flutter run -d chrome on the same PC, or open the web build from a local HTTP origin.
-4. In the web app, enter the Windows IPv4 address and session code, then connect.
-5. The current prototype synchronizes drawing/board events between the clients. This is only a transport smoke test; it does not yet validate the intended phone-as-input-pad workflow.
+    flutter run -d <android-device-id>
 
-## Target end-to-end test
+Build the Windows companion with:
 
-1. Start the Windows host and connect an Android phone on the same private Wi-Fi.
-2. Move the stylus without drawing and verify the desktop canvas pointer follows without adding ink.
-3. Press and write on the phone; verify strokes render on the desktop canvas in real time.
-4. Drag two fingers to pan and pinch to zoom; verify gestures do not create strokes.
-5. Verify undo/redo/erase/clear, disconnect during a stroke, reconnect, and host shutdown behavior.
-6. Separately build and test the web canvas. The browser cannot listen for incoming local WebSocket connections.
+    flutter build windows
 
-A deployed HTTPS web app cannot generally connect to a plain ws:// LAN endpoint because of mixed-content restrictions. A production web deployment needs a secure local companion/relay design.
+## First real-device test
 
-## Package note
+1. Connect Windows and Android to the same trusted private Wi-Fi network.
+2. Run the Windows companion and click **Start Windows companion**.
+3. Copy one of the private IPv4 addresses and the session code displayed by Windows.
+4. In the Android app, enter the address and code, then connect.
+5. Open Paint on Windows and make sure Paint is the active application.
+6. Use the phone's touch surface to write; verify Paint receives the strokes.
+7. Move two fingers together to scroll/pan. Pinch apart or together to test Ctrl+wheel zoom.
+8. Disconnect during a stroke and verify Windows releases the left mouse button.
 
-The requested clean_util package name did not resolve on pub.dev, so it is intentionally not included. Confirm the exact package URL if a different package was intended.
+Allow the Windows companion through Windows Firewall on **Private networks only**. Do not disable the firewall or expose the host to public networks.
+
+## Known limitations
+
+- The first implementation uses relative mouse input. It is a trackpad, not a mapped graphics tablet, so lift-and-reposition behavior and cursor speed will need tuning for handwriting.
+- Standard mouse input does not carry genuine stylus pressure or tilt. Pressure-sensitive drawing will require a separate Windows Pointer/pen-injection approach and compatible app support.
+- Scroll and zoom are interpreted by the active application. Ctrl+wheel zoom is common but not universal; applications can override these gestures.
+- The WebSocket endpoint is for trusted local-network use and uses an unencrypted ws:// connection. Do not use it on public Wi-Fi. Secure pairing, event-rate limiting, and broader threat hardening remain follow-up work.
+- QR pairing, automatic reconnect, configurable pointer speed, and an installable Windows background/tray experience are planned after real-device input testing.
+
+The original whiteboard/drawing files are legacy prototype code and are not part of the intended input-pad workflow.
